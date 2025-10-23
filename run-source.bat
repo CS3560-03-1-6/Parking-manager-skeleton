@@ -25,55 +25,91 @@ if not exist "build" mkdir build
 REM Compile all Java files with proper classpath in dependency order
 echo Compiling Java files from src directory...
 
+echo Compiling enum classes...
+javac -cp ".;%MYSQL_JAR%" -source 8 -target 8 -sourcepath src -d build src/com/parkinglotmanager/enums/*.java
+if %errorlevel% neq 0 (
+    echo ERROR: Enum compilation failed!
+    pause
+    exit /b 1
+)
+
 echo Compiling model classes...
-javac -cp ".;%MYSQL_JAR%" -sourcepath src -d build src/com/parkingmanager/model/*.java
+javac -cp "build;%MYSQL_JAR%" -source 8 -target 8 -sourcepath src -d build src/com/parkinglotmanager/model/*.java
 if %errorlevel% neq 0 (
     echo ERROR: Model compilation failed!
     pause
     exit /b 1
 )
 
-echo Compiling utility classes...
-javac -cp ".;%MYSQL_JAR%" -sourcepath src -d build src/com/parkingmanager/util/*.java
+echo Compiling test classes...
+javac -cp "build;%MYSQL_JAR%" -source 8 -target 8 -sourcepath src -d build src/com/parkinglotmanager/test/*.java
 if %errorlevel% neq 0 (
-    echo ERROR: Utility compilation failed!
-    pause
-    exit /b 1
-)
-
-echo Compiling DAO classes...
-javac -cp "build;%MYSQL_JAR%" -sourcepath src -d build src/com/parkingmanager/dao/*.java
-if %errorlevel% neq 0 (
-    echo ERROR: DAO compilation failed!
-    pause
-    exit /b 1
-)
-
-echo Compiling service classes...
-javac -cp "build;%MYSQL_JAR%" -sourcepath src -d build src/com/parkingmanager/service/*.java
-if %errorlevel% neq 0 (
-    echo ERROR: Service compilation failed!
+    echo ERROR: Test compilation failed!
     pause
     exit /b 1
 )
 
 echo Compiling GUI classes...
-javac -cp "build;%MYSQL_JAR%" -sourcepath src -d build src/com/parkingmanager/gui/*.java
-
+javac -cp "build;%MYSQL_JAR%" -source 8 -target 8 -sourcepath src -d build src/com/parkinglotmanager/gui/*.java
 if %errorlevel% neq 0 (
-    echo.
-    echo ERROR: Compilation failed!
-    echo Make sure you have JDK installed and in your PATH.
+    echo ERROR: GUI compilation failed!
     pause
     exit /b 1
 )
 
-echo Compilation successful!
 echo.
+echo Compiling OLD package (com.parkingmanager)...
+echo Compiling old model classes...
+javac -cp ".;%MYSQL_JAR%" -source 8 -target 8 -sourcepath src -d build src/com/parkingmanager/model/*.java
+if %errorlevel% neq 0 (
+    echo WARNING: Old model compilation failed (this is expected)
+)
 
-REM Run the application
-echo Starting Parking Manager System...
+echo Compiling old utility classes...
+javac -cp ".;%MYSQL_JAR%" -source 8 -target 8 -sourcepath src -d build src/com/parkingmanager/util/*.java
+if %errorlevel% neq 0 (
+    echo WARNING: Old utility compilation failed
+)
+
+echo Compiling old DAO classes...
+javac -cp "build;%MYSQL_JAR%" -source 8 -target 8 -sourcepath src -d build src/com/parkingmanager/dao/*.java
+if %errorlevel% neq 0 (
+    echo WARNING: Old DAO compilation failed
+)
+
+echo Compiling old service classes...
+javac -cp "build;%MYSQL_JAR%" -source 8 -target 8 -sourcepath src -d build src/com/parkingmanager/service/*.java
+if %errorlevel% neq 0 (
+    echo WARNING: Old service compilation failed
+)
+
+echo Compiling old GUI classes...
+javac -cp "build;%MYSQL_JAR%" -source 8 -target 8 -sourcepath src -d build src/com/parkingmanager/gui/*.java
+if %errorlevel% neq 0 (
+    echo WARNING: Old GUI compilation failed (this is expected)
+)
+
 echo.
-java -cp "build;%MYSQL_JAR%" com.parkingmanager.gui.ParkingManagerGUI
+echo Compilation complete!
+echo.
+echo Choose what to run:
+echo 1. Model Test (console)
+echo 2. GUI Application (window)
+echo.
+set /p choice="Enter your choice (1 or 2): "
+
+if "%choice%"=="1" (
+    echo Starting Model Test...
+    echo.
+    java -cp "build;%MYSQL_JAR%" com.parkinglotmanager.test.ModelTest
+) else if "%choice%"=="2" (
+    echo Starting GUI Application...
+    echo.
+    java -cp "build;%MYSQL_JAR%" com.parkinglotmanager.gui.ParkingLotManagerGUI
+) else (
+    echo Invalid choice. Starting Model Test by default...
+    echo.
+    java -cp "build;%MYSQL_JAR%" com.parkinglotmanager.test.ModelTest
+)
 
 pause

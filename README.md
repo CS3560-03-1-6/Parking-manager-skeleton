@@ -1,38 +1,13 @@
 # Parking Manager System - Updated Project Structure
 
 A comprehensive parking management system built with Java Swing and MySQL database, now organized with proper package structure.
-<img width="982" height="689" alt="image" src="https://github.com/user-attachments/assets/0bec96de-a7a3-4a98-bdc4-27f28c8b4f65" />
 
-```
-parking manager/
-├── src/                                    # Source directory
-│   └── com/
-│       └── parkingmanager/
-│           ├── model/                      # Data Models
-│           │   ├── ParkingSpot.java       # Parking spot entity
-│           │   └── Vehicle.java           # Vehicle entity
-│           │
-│           ├── dao/                       # Data Access Objects
-│           │   ├── ParkingSpotDAO.java    # Parking spot database operations
-│           │   └── VehicleDAO.java        # Vehicle database operations
-│           │
-│           ├── service/                   # Business Logic Layer
-│           │   └── ParkingService.java    # Service layer with business logic
-│           │
-│           ├── util/                      # Utilities
-│           │   └── DatabaseConnection.java # Database connection utility
-│           │
-│           └── gui/                       # User Interface
-│               └── ParkingManagerGUI.java # Main GUI application
-│
-├── build/                                 # Compiled classes (auto-created)
-├── mysql-connector-j-9.4.0.jar          # MySQL JDBC driver
-├── database_setup.sql                    # Database schema
-├── config.properties                     # Configuration settings
-├── run-source.bat                        # New build script for source structure
-├── run.bat                               # Original build script (for root-level files)
-└── README-Source.md                      # This documentation
-```
+New:
+![alt text](image.png)
+![alt text](image-1.png)
+
+Old:
+<img width="982" height="689" alt="image" src="https://github.com/user-attachments/assets/0bec96de-a7a3-4a98-bdc4-27f28c8b4f65" />
 
 ## **How to Run the Application**
 
@@ -52,10 +27,10 @@ parking manager/
    private static final String PASSWORD = "your_mysql_password";
    ```
 
-3. **Build and Run:**
-   ```powershell
-   .\run-source.bat
-   ```
+3. **Build and Run: for testing**
+   `powershell`
+   .\run-source.bat <!-- for testing -->
+   .\run-source.bat <!-- for quick GUI  -->
 
 ## **Usage Features**
 
