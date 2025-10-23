@@ -1,6 +1,7 @@
 package com.parkinglotmanager.model;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -29,17 +30,18 @@ public class Admin extends User {
      */
     @Override
     public List<String> getActions() {
-        return List.of(
-                "VIEW_LOTS",
-                "VIEW_AVAILABILITY",
-                "MANAGE_LOTS",
-                "MANAGE_SLOTS",
-                "MANAGE_PRICING",
-                "VIEW_REPORTS",
-                "MANAGE_USERS",
-                "MANAGE_SENSORS",
-                "VIEW_ANALYTICS",
-                "SYSTEM_CONFIGURATION");
+        List<String> actions = new ArrayList<>();
+        actions.add("VIEW_LOTS");
+        actions.add("VIEW_AVAILABILITY");
+        actions.add("MANAGE_LOTS");
+        actions.add("MANAGE_SLOTS");
+        actions.add("MANAGE_PRICING");
+        actions.add("VIEW_REPORTS");
+        actions.add("MANAGE_USERS");
+        actions.add("MANAGE_SENSORS");
+        actions.add("VIEW_ANALYTICS");
+        actions.add("SYSTEM_CONFIGURATION");
+        return actions;
     }
 
     @Override

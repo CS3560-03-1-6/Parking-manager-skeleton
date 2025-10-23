@@ -26,15 +26,23 @@ REM Compile all Java files with proper classpath in dependency order
 echo Compiling Java files from src directory...
 
 echo Compiling enum classes...
-javac -cp ".;%MYSQL_JAR%" -source 8 -target 8 -sourcepath src -d build src/com/parkinglotmanager/enums/*.java
+javac -cp ".;%MYSQL_JAR%" --release 8 -Xlint:-options -sourcepath src -d build src/com/parkinglotmanager/enums/*.java
 if %errorlevel% neq 0 (
     echo ERROR: Enum compilation failed!
     pause
     exit /b 1
 )
 
+echo Compiling utility classes...
+javac -cp "build;%MYSQL_JAR%" --release 8 -Xlint:-options -sourcepath src -d build src/com/parkinglotmanager/util/*.java
+if %errorlevel% neq 0 (
+    echo ERROR: Utility compilation failed!
+    pause
+    exit /b 1
+)
+
 echo Compiling model classes...
-javac -cp "build;%MYSQL_JAR%" -source 8 -target 8 -sourcepath src -d build src/com/parkinglotmanager/model/*.java
+javac -cp "build;%MYSQL_JAR%" --release 8 -Xlint:-options -sourcepath src -d build src/com/parkinglotmanager/model/*.java
 if %errorlevel% neq 0 (
     echo ERROR: Model compilation failed!
     pause
@@ -42,7 +50,7 @@ if %errorlevel% neq 0 (
 )
 
 echo Compiling test classes...
-javac -cp "build;%MYSQL_JAR%" -source 8 -target 8 -sourcepath src -d build src/com/parkinglotmanager/test/*.java
+javac -cp "build;%MYSQL_JAR%" --release 8 -Xlint:-options -sourcepath src -d build src/com/parkinglotmanager/test/*.java
 if %errorlevel% neq 0 (
     echo ERROR: Test compilation failed!
     pause
@@ -50,7 +58,7 @@ if %errorlevel% neq 0 (
 )
 
 echo Compiling GUI classes...
-javac -cp "build;%MYSQL_JAR%" -source 8 -target 8 -sourcepath src -d build src/com/parkinglotmanager/gui/*.java
+javac -cp "build;%MYSQL_JAR%" --release 8 -Xlint:-options -sourcepath src -d build src/com/parkinglotmanager/gui/*.java
 if %errorlevel% neq 0 (
     echo ERROR: GUI compilation failed!
     pause
@@ -60,31 +68,31 @@ if %errorlevel% neq 0 (
 echo.
 echo Compiling OLD package (com.parkingmanager)...
 echo Compiling old model classes...
-javac -cp ".;%MYSQL_JAR%" -source 8 -target 8 -sourcepath src -d build src/com/parkingmanager/model/*.java
+javac -cp ".;%MYSQL_JAR%" --release 8 -Xlint:-options -sourcepath src -d build src/com/parkingmanager/model/*.java
 if %errorlevel% neq 0 (
     echo WARNING: Old model compilation failed (this is expected)
 )
 
 echo Compiling old utility classes...
-javac -cp ".;%MYSQL_JAR%" -source 8 -target 8 -sourcepath src -d build src/com/parkingmanager/util/*.java
+javac -cp ".;%MYSQL_JAR%" --release 8 -Xlint:-options -sourcepath src -d build src/com/parkingmanager/util/*.java
 if %errorlevel% neq 0 (
     echo WARNING: Old utility compilation failed
 )
 
 echo Compiling old DAO classes...
-javac -cp "build;%MYSQL_JAR%" -source 8 -target 8 -sourcepath src -d build src/com/parkingmanager/dao/*.java
+javac -cp "build;%MYSQL_JAR%" --release 8 -Xlint:-options -sourcepath src -d build src/com/parkingmanager/dao/*.java
 if %errorlevel% neq 0 (
     echo WARNING: Old DAO compilation failed
 )
 
 echo Compiling old service classes...
-javac -cp "build;%MYSQL_JAR%" -source 8 -target 8 -sourcepath src -d build src/com/parkingmanager/service/*.java
+javac -cp "build;%MYSQL_JAR%" --release 8 -Xlint:-options -sourcepath src -d build src/com/parkingmanager/service/*.java
 if %errorlevel% neq 0 (
     echo WARNING: Old service compilation failed
 )
 
 echo Compiling old GUI classes...
-javac -cp "build;%MYSQL_JAR%" -source 8 -target 8 -sourcepath src -d build src/com/parkingmanager/gui/*.java
+javac -cp "build;%MYSQL_JAR%" --release 8 -Xlint:-options -sourcepath src -d build src/com/parkingmanager/gui/*.java
 if %errorlevel% neq 0 (
     echo WARNING: Old GUI compilation failed (this is expected)
 )

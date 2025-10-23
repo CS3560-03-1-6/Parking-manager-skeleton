@@ -130,7 +130,10 @@ public class User {
      * Override in subclasses for specific permissions
      */
     public java.util.List<String> getActions() {
-        return java.util.List.of("VIEW_LOTS", "VIEW_AVAILABILITY");
+        java.util.List<String> actions = new java.util.ArrayList<>();
+        actions.add("VIEW_LOTS");
+        actions.add("VIEW_AVAILABILITY");
+        return actions;
     }
 
     @Override

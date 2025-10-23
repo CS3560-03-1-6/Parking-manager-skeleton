@@ -3,13 +3,18 @@ package com.parkinglotmanager.gui;
 import com.parkinglotmanager.model.Admin;
 import com.parkinglotmanager.model.Client;
 import com.parkinglotmanager.model.User;
+import com.parkinglotmanager.util.DatabaseConnection;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import javax.imageio.ImageIO;
 
 /**
  * Login and registration GUI for the Parking Lot Management System.
@@ -59,10 +64,22 @@ public class LoginGUI extends JFrame {
      * Sets up the login/signup user interface
      */
     private void setupUI() {
-        setTitle("Parking Lot Manager - Login");
+        setTitle("Parking Lot Manager - Login | MySQL + Java");
         setSize(450, 350);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout(10, 10));
+        
+        // Set Java icon for the application window
+        try {
+            BufferedImage iconImage = ImageIO.read(new File("Resources/java-icon.png"));
+            setIconImage(iconImage);
+        } catch (IOException e) {
+            // If icon loading fails, continue without icon
+            System.out.println("Could not load Java icon: " + e.getMessage());
+        }
+        
+        // Test database connection on startup
+        DatabaseConnection.testConnection();
 
         // Header panel
         JPanel headerPanel = new JPanel();

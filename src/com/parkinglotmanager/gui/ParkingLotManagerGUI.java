@@ -76,10 +76,19 @@ public class ParkingLotManagerGUI extends JFrame {
      * Sets up the main user interface
      */
     private void setupUI() {
-        setTitle("Parking Lot Manager System - Java 8 Edition");
+        setTitle("Parking Lot Manager System - Java + MySQL Edition");
         setSize(1200, 800);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout(10, 10));
+        
+        // Set Java icon for the application window
+        try {
+            java.awt.image.BufferedImage iconImage = javax.imageio.ImageIO.read(new java.io.File("Resources/java-icon.png"));
+            setIconImage(iconImage);
+        } catch (java.io.IOException e) {
+            // If icon loading fails, continue without icon
+            System.out.println("Could not load Java icon: " + e.getMessage());
+        }
 
         // Add panels
         add(createHeaderPanel(), BorderLayout.NORTH);
@@ -137,12 +146,28 @@ public class ParkingLotManagerGUI extends JFrame {
 
         panel.add(controlPanel, BorderLayout.CENTER);
 
-        // User info
+        // User info and database status
+        JPanel infoPanel = new JPanel(new BorderLayout());
         JLabel userLabel = new JLabel("Logged in as: " + currentUser.getFullName() +
                 " (" + (isAdmin ? "Administrator" : "Client") + ")");
         userLabel.setHorizontalAlignment(SwingConstants.RIGHT);
         userLabel.setForeground(Color.BLACK);
-        panel.add(userLabel, BorderLayout.SOUTH);
+        
+        // Database connection status
+        JLabel dbStatusLabel = new JLabel();
+        try {
+            com.parkinglotmanager.util.DatabaseConnection.testConnection();
+            dbStatusLabel.setText("🟢 MySQL Connected");
+            dbStatusLabel.setForeground(new Color(0, 150, 0));
+        } catch (Exception e) {
+            dbStatusLabel.setText("🔴 MySQL Disconnected");
+            dbStatusLabel.setForeground(Color.RED);
+        }
+        dbStatusLabel.setHorizontalAlignment(SwingConstants.LEFT);
+        
+        infoPanel.add(dbStatusLabel, BorderLayout.WEST);
+        infoPanel.add(userLabel, BorderLayout.EAST);
+        panel.add(infoPanel, BorderLayout.SOUTH);
 
         return panel;
     }

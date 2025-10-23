@@ -16,44 +16,35 @@ Old:
 
 ## **Setup Steps**
 
-1. **Database Setup:**
+### **1. Database Setup:**
 
-   ```sql
-   mysql -u root -p < database_setup.sql
-   ```
+Make sure MySQL is installed and running, then create the database:
 
-2. **Update Database Credentials:**
-   Edit `src/com/parkingmanager/util/DatabaseConnection.java`:
+```sql
+mysql -u root -p < database/database_setup_v2.sql
+```
 
-   ```java
-   private static final String USER = "your_mysql_username";
-   private static final String PASSWORD = "your_mysql_password";
-   ```
+### **2. Update Database Credentials:**
 
-3. **Build and Run: for testing**
-   `powershell`
-   .\run-source.bat <!-- for testing -->
-   .\run-source.bat <!-- for quick GUI  -->
+Edit `config.properties` file:
 
-## **Usage Features**
+```properties
+DB_HOST=localhost
+DB_PORT=3306
+DB_NAME=parking_lot_manager_db
+DB_USER=root
+DB_PASSWORD=your_mysql_password
+```
 
-- **Park vehicles** - Select available spots and enter vehicle details
-- **Calculate fees** - Automatic hourly rate calculation with minimum 1-hour charge
-- **Real-time stats** - Available spots, occupied spots, total revenue
-- **View data** - Tabular display of all spots and parked vehicles
-- **Persistent storage** - All data saved to MySQL database
+### **3. Build and Run:**
 
-### **Method 1: Using the Source Build Script (Recommended)**
+For quick GUI launch:
+```powershell
+.\run-gui.bat
+```
 
-1. **Navigate to project directory:**
+For testing/development:
+```powershell
+.\run-source.bat
+```
 
-   ```powershell
-   cd "d:\My projects2\parking manager"
-   ```
-
-2. **Run the source build script:**
-   ```powershell
-   .\run-source.bat
-   ```
-
-   or .\run-gui.bat
