@@ -1,7 +1,5 @@
 -- ========================================
 -- Parking Lot Manager System - Database Schema V2
--- Java 21 Compatible
--- Date: October 22, 2025
 -- ========================================
 
 -- Drop existing database if exists and create new one
