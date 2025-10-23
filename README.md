@@ -3,8 +3,11 @@
 A comprehensive parking management system built with Java Swing and MySQL database, now organized with proper package structure.
 
 New:
+
 ![alt text](image.png)
 ![alt text](image-1.png)
+
+
 
 Old:
 <img width="982" height="689" alt="image" src="https://github.com/user-attachments/assets/0bec96de-a7a3-4a98-bdc4-27f28c8b4f65" />
