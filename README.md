@@ -55,3 +55,5 @@ Old:
    ```powershell
    .\run-source.bat
    ```
+
+   or .\run-gui.bat
