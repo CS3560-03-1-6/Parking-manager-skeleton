@@ -38,7 +38,7 @@ public class LoginGUI extends JFrame {
      * Initialize the user database with default accounts
      */
     private void initializeUserDatabase() {
-        userDatabase = new HashMap<>();
+        userDatabase = new HashMap<>();//this overloads the previous hashmap! which will delete every previous data
 
         // Create default admin account
         Admin admin = new Admin("admin", "Admin", "User", "admin@parking.com", hashPassword("admin123"));
