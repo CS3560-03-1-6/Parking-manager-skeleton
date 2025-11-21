@@ -35,9 +35,9 @@ echo Compiling models...
 javac -cp "build;%MYSQL_JAR%" --release 8 -Xlint:-options -d build src\com\parkinglotmanager\model\User.java src\com\parkinglotmanager\model\Admin.java src\com\parkinglotmanager\model\Client.java src\com\parkinglotmanager\model\Vehicle.java src\com\parkinglotmanager\model\ParkingLot.java src\com\parkinglotmanager\model\ParkingSlot.java src\com\parkinglotmanager\model\VehicleSession.java src\com\parkinglotmanager\model\UserReport.java src\com\parkinglotmanager\model\OccupancyReport.java src\com\parkinglotmanager\model\Sensor.java src\com\parkinglotmanager\model\SensorReading.java
 if %errorlevel% neq 0 exit /b 1
 
-REM Compile DAO
+REM Compile DAOs
 echo Compiling Data Access Objects...
-javac -cp "build;%MYSQL_JAR%" --release 8 -Xlint:-options -d build src\com\parkinglotmanager\dao\UserDAO.java
+javac -cp "build;%MYSQL_JAR%" --release 8 -Xlint:-options -d build src\com\parkinglotmanager\dao\*.java
 if %errorlevel% neq 0 exit /b 1
 
 REM Compile GUI

@@ -1,0 +1,102 @@
+package com.parkinglotmanager.dao;
+
+import com.parkinglotmanager.model.UserReport;
+import com.parkinglotmanager.util.DatabaseConnection;
+
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
+
+public class ParkingReportDAO {
+
+    // Create a new parking report
+    public boolean submitReport(int lotId, int userId, int fullness) {
+        String sql = "INSERT INTO ParkingReport (lotID, userID, fullness, reportTime) VALUES (?, ?, ?, NOW())";
+        
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            
+            stmt.setInt(1, lotId);
+            stmt.setInt(2, userId);
+            stmt.setInt(3, fullness);
+            
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    // Read recent parking reports
+    // This returns raw data, you would map this to UserReport objects
+    public List<String> getRecentReports(int lotId) {
+        List<String> reports = new ArrayList<>();
+        String sql = "SELECT fullness, reportTime FROM ParkingReport WHERE lotID = ? ORDER BY reportTime DESC LIMIT 5";
+        
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            
+            stmt.setInt(1, lotId);
+            ResultSet rs = stmt.executeQuery();
+            
+            while (rs.next()) {
+                reports.add(rs.getInt("fullness") + "% full at " + rs.getTimestamp("reportTime"));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return reports;
+    }
+
+    //Read report by userID
+    public List<UserReport> getReportsByUserId(int userId) {
+        List<UserReport> reports = new ArrayList<>();
+        String sql = "SELECT * FROM ParkingReport WHERE userID = ?";
+        
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            
+            stmt.setInt(1, userId);
+            ResultSet rs = stmt.executeQuery();
+            
+            while (rs.next()) {
+                UserReport report = new UserReport(
+                    rs.getInt("reportID"),
+                    rs.getInt("lotID"),
+                    rs.getInt("userID"),
+                    rs.getInt("fullness"),
+                    rs.getTimestamp("reportTime")
+                );
+                reports.add(report);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return reports;
+    }
+
+    //Read report by reportID
+    public UserReport getReportById(int reportId) {
+        String sql = "SELECT * FROM ParkingReport WHERE reportID = ?";
+        
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            
+            stmt.setInt(1, reportId);
+            ResultSet rs = stmt.executeQuery();
+            
+            if (rs.next()) {
+                return new UserReport(
+                    rs.getInt("reportID"),
+                    rs.getInt("lotID"),
+                    rs.getInt("userID"),
+                    rs.getInt("fullness"),
+                    rs.getTimestamp("reportTime")
+                );
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+}
