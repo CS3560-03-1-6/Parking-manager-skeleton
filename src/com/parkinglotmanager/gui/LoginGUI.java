@@ -1,7 +1,5 @@
 package com.parkinglotmanager.gui;
 
-import com.parkinglotmanager.model.Admin;
-import com.parkinglotmanager.model.Client;
 import com.parkinglotmanager.model.User;
 import com.parkinglotmanager.dao.UserDAO;
 import com.parkinglotmanager.util.DatabaseConnection;
@@ -11,8 +9,6 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 import javax.imageio.ImageIO;
 
 public class LoginGUI extends JFrame {

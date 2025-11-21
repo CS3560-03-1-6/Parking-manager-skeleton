@@ -29,8 +29,8 @@ public class ParkingReportDAO {
 
     // Read recent parking reports
     // This returns raw data, you would map this to UserReport objects
-    public List<String> getRecentReports(int lotId) {
-        List<String> reports = new ArrayList<>();
+    public List<UserReport> getRecentReports(int lotId) {
+        List<UserReport> reports = new ArrayList<>();
         String sql = "SELECT fullness, reportTime FROM ParkingReport WHERE lotID = ? ORDER BY reportTime DESC LIMIT 5";
         
         try (Connection conn = DatabaseConnection.getConnection();
@@ -40,7 +40,13 @@ public class ParkingReportDAO {
             ResultSet rs = stmt.executeQuery();
             
             while (rs.next()) {
-                reports.add(rs.getInt("fullness") + "% full at " + rs.getTimestamp("reportTime"));
+                reports.add(new UserReport(
+                    0, // reportID not selected in this query
+                    lotId,
+                    0, // userID not selected in this query
+                    rs.getInt("fullness"),
+                    rs.getTimestamp("reportTime")
+                ));
             }
         } catch (SQLException e) {
             e.printStackTrace();

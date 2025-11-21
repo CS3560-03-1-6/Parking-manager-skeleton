@@ -1,6 +1,7 @@
 package com.parkinglotmanager.dao;
 
-import com.parkinglotmanager.model.Vehicle; // You might need to create a simple Vehicle POJO if not exists
+import com.parkinglotmanager.model.Vehicle;
+import com.parkinglotmanager.enums.VehicleMake;
 import com.parkinglotmanager.util.DatabaseConnection;
 
 import java.sql.*;
@@ -31,9 +32,9 @@ public class VehicleDAO {
 
     // --- GETTER (Read by User) ---
     // Useful for "My Vehicles" list
-    public List<String> getVehiclePlatesByUserId(int userId) {
-        List<String> plates = new ArrayList<>();
-        String sql = "SELECT plate FROM Vehicle WHERE userID = ?";
+    public List<Vehicle> getVehicleByUserId(int userId) {
+        List<Vehicle> vehicles = new ArrayList<>();
+        String sql = "SELECT * FROM Vehicle WHERE userID = ?";
         
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -42,11 +43,44 @@ public class VehicleDAO {
             ResultSet rs = stmt.executeQuery();
             
             while (rs.next()) {
-                plates.add(rs.getString("plate"));
+                vehicles.add(new Vehicle(
+                    rs.getInt("vehicleID"),
+                    rs.getInt("userID"),
+                    rs.getString("plate"),
+                    VehicleMake.valueOf(rs.getString("make")),
+                    rs.getString("model"),
+                    rs.getString("color")
+                ));
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return plates;
+        return vehicles;
+    }
+
+    // Read by Vehicle ID
+    public Vehicle getVehicleById(int vehicleId) {
+        String sql = "SELECT * FROM Vehicle WHERE vehicleID = ?";
+        
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            
+            stmt.setInt(1, vehicleId);
+            ResultSet rs = stmt.executeQuery();
+            
+            if (rs.next()) {
+                return new Vehicle(
+                    rs.getInt("vehicleID"),
+                    rs.getInt("userID"),
+                    rs.getString("plate"),
+                    VehicleMake.valueOf(rs.getString("make")),
+                    rs.getString("model"),
+                    rs.getString("color")
+                );
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null; // Vehicle not found
     }
 }
