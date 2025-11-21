@@ -1,6 +1,5 @@
 -- Drop existing database if exists and create new one
-DROP DATABASE IF EXISTS parking_lot_manager_db;
-CREATE DATABASE parking_lot_manager_db;
+CREATE DATABASE IF NOT EXISTS parking_lot_manager_db;
 USE parking_lot_manager_db;
 
 
