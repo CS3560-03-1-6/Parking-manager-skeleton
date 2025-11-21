@@ -6,7 +6,7 @@ USE parking_lot_manager_db;
 
 -- TABLE: User
 -- System users (registered + moderators)
-CREATE TABLE `User` (
+CREATE TABLE User (
     userID       INT NOT NULL AUTO_INCREMENT,
     userName     VARCHAR(50)  NOT NULL,
     userEmail    VARCHAR(100) NOT NULL,
@@ -41,8 +41,6 @@ CREATE TABLE Vehicle (
     PRIMARY KEY (vehicleID),
     CONSTRAINT fk_vehicle_user
         FOREIGN KEY (userID) REFERENCES `User`(userID)
-        ON DELETE CASCADE ON UPDATE CASCADE,
-    INDEX idx_vehicle_plate (plate)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 
@@ -63,7 +61,6 @@ CREATE TABLE ParkingReport (
         ON DELETE CASCADE ON UPDATE CASCADE,
     INDEX idx_report_lot_time (lotID, reportTime)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
 
 -- TABLE: Notification
 -- Messages sent to users
@@ -106,7 +103,7 @@ CREATE TABLE ModerationAction (
 
 -- TABLE: Log
 -- System log entries
-CREATE TABLE `Log` (
+CREATE TABLE Log (
     logID             INT NOT NULL AUTO_INCREMENT,
     logType           VARCHAR(30)  NOT NULL,   -- e.g. 'login', 'moderation', 'report'
     logTime           DATETIME     NOT NULL,
@@ -136,7 +133,7 @@ CREATE TABLE `Log` (
 
 -- SAMPLE DATA 
 -- Users
-INSERT INTO `User` (userID, userName, userEmail, passwordHash, privilege)
+INSERT INTO User (userID, userName, userEmail, passwordHash, privilege)
 VALUES
     (1, 'Gavin', 'gavin@cpp.edu', '(password)', 'registered'),
     (2, 'Alex',  'alex@cpp.edu',  '(password)', 'moderator');
@@ -165,12 +162,18 @@ VALUES
 -- ModerationAction
 INSERT INTO ModerationAction (moderationActionID, modID, actionType, message, affectedReportID, affectedLotID)
 VALUES
-    (1, 1, 'delete', 'Wrong report', 34, 3);
+    (1, 1, 'delete', 'Wrong report', NULL, NULL);
 
 -- Log
-INSERT INTO `Log` (logID, logType, logTime, logMessage, userID)
+INSERT INTO Log (logID, logType, logTime, logMessage, userID)
 VALUES
     (1, 'login', '2025-11-20 08:25:57', 'userID 1 has logged in', 1);
+
+SHOW DATABASES LIKE 'parking_lot_manager_db';
+USE parking_lot_manager_db;
+SHOW TABLES;
+SELECT COUNT(*) FROM User;
+SELECT COUNT(*) FROM ModerationAction;
 
 -- ========================================
 -- END – simple status message
