@@ -12,21 +12,11 @@ CREATE TABLE `User` (
     userEmail    VARCHAR(100) NOT NULL,
     passwordHash VARCHAR(200) NOT NULL,
     privilege    VARCHAR(20)  NOT NULL,   -- e.g. 'registered', 'moderator'
+    modID        INT NULL,
     PRIMARY KEY (userID),
     UNIQUE KEY uq_user_email (userEmail)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- TABLE: Moderator
--- Subset of users with moderation rights
-CREATE TABLE Moderator (
-    modID  INT NOT NULL AUTO_INCREMENT,
-    userID INT NOT NULL,
-    PRIMARY KEY (modID),
-    UNIQUE KEY uq_moderator_user (userID),
-    CONSTRAINT fk_moderator_user
-        FOREIGN KEY (userID) REFERENCES `User`(userID)
-        ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- TABLE: Lot
 -- Parking lots
@@ -97,13 +87,14 @@ CREATE TABLE Notification (
 CREATE TABLE ModerationAction (
     moderationActionID INT NOT NULL AUTO_INCREMENT,
     modID              INT NOT NULL,
-    actionType         VARCHAR(30)  NOT NULL,   -- e.g. 'delete', 'warn', 'flag'
+    actionType         VARCHAR(30)  NOT NULL,
     message            VARCHAR(255) NOT NULL,
     affectedReportID   INT NULL,
     affectedLotID      INT NULL,
     PRIMARY KEY (moderationActionID),
+    -- FIX: Reference the User table, not the non-existent Moderator table
     CONSTRAINT fk_action_mod
-        FOREIGN KEY (modID) REFERENCES Moderator(modID)
+        FOREIGN KEY (modID) REFERENCES `User`(userID)
         ON DELETE CASCADE ON UPDATE CASCADE,
     CONSTRAINT fk_action_report
         FOREIGN KEY (affectedReportID) REFERENCES ParkingReport(parkingReportID)
@@ -150,10 +141,6 @@ VALUES
     (1, 'Gavin', 'gavin@cpp.edu', '(password)', 'registered'),
     (2, 'Alex',  'alex@cpp.edu',  '(password)', 'moderator');
 
--- Moderator 
-INSERT INTO Moderator (modID, userID)
-VALUES
-    (1, 2);
 
 -- Lot
 INSERT INTO Lot (lotID, lotName, capacity, status)

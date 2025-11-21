@@ -23,7 +23,7 @@ import javax.imageio.ImageIO;
 public class LoginGUI extends JFrame {
     private JTextField usernameField;
     private JPasswordField passwordField;
-    private Map<String, User> userDatabase;
+    private static Map<String, User> userDatabase;
     private User loggedInUser;
 
     // The one and only admin username
@@ -38,8 +38,9 @@ public class LoginGUI extends JFrame {
      * Initialize the user database with default accounts
      */
     private void initializeUserDatabase() {
-        userDatabase = new HashMap<>();//this overloads the previous hashmap! which will delete every previous data
-
+        if (userDatabase == null) { // Only create it if it doesn't exist yet
+            userDatabase = new HashMap<>();
+        
         // Create default admin account
         Admin admin = new Admin("admin", "Admin", "User", "admin@parking.com", hashPassword("admin123"));
         admin.setId(1);
@@ -49,6 +50,7 @@ public class LoginGUI extends JFrame {
         Client client = new Client("client", "Demo", "Client", "client@parking.com", hashPassword("client123"));
         client.setId(2);
         userDatabase.put("client", client);
+        }
     }
 
     /**
