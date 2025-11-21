@@ -3,6 +3,7 @@ package com.parkinglotmanager.gui;
 import com.parkinglotmanager.model.Admin;
 import com.parkinglotmanager.model.Client;
 import com.parkinglotmanager.model.User;
+import com.parkinglotmanager.dao.UserDAO;
 import com.parkinglotmanager.util.DatabaseConnection;
 
 import javax.swing.*;
@@ -25,8 +26,6 @@ public class LoginGUI extends JFrame {
 
     // --- State ---
     private static final String ADMIN_USERNAME = "admin";
-    // Static map to prevent data loss when window closes
-    private static Map<String, User> userDatabase; 
     private User loggedInUser;
 
     // --- UI Components ---
@@ -34,7 +33,6 @@ public class LoginGUI extends JFrame {
     private JPasswordField passwordField;
 
     public LoginGUI() {
-        initializeUserDatabase();
         setupWindow();
         buildUI();
     }
@@ -43,21 +41,7 @@ public class LoginGUI extends JFrame {
     // 1. INITIALIZATION & SETUP
     // ==========================================
     
-    private void initializeUserDatabase() {
-        if (userDatabase == null) {
-            userDatabase = new HashMap<>();
-            
-            // Default Admin
-            Admin admin = new Admin("admin", "Admin", "User", "admin@parking.com", hashPassword("admin123"));
-            admin.setId(1);
-            userDatabase.put("admin", admin);
 
-            // Default Client
-            Client client = new Client("client", "Demo", "Client", "client@parking.com", hashPassword("client123"));
-            client.setId(2);
-            userDatabase.put("client", client);
-        }
-    }
 
     private void setupWindow() {
         setTitle("Parking Lot Manager");
@@ -183,13 +167,14 @@ public class LoginGUI extends JFrame {
     private void handleLogin() {
         String username = usernameField.getText().trim();
         String password = new String(passwordField.getPassword());
-
+        UserDAO userDAO = new UserDAO();
+        User user = userDAO.getUserByUsername(username);
+        
         if (username.isEmpty() || password.isEmpty()) {
             showError("Please enter both username and password.");
             return;
         }
 
-        User user = userDatabase.get(username);
         if (user == null) {
             showError("Account not found! Please sign up first.");
             return;
@@ -234,6 +219,7 @@ public class LoginGUI extends JFrame {
             String username = userTxt.getText().trim();
             String password = new String(passTxt.getPassword());
 
+            UserDAO userDAO = new UserDAO();
             // Basic Validation
             if (username.isEmpty() || password.isEmpty()) {
                 showError("All fields are required.");
@@ -243,7 +229,8 @@ public class LoginGUI extends JFrame {
                 showError("Passwords do not match.");
                 return;
             }
-            if (userDatabase.containsKey(username)) {
+            // Check if exists in DB
+            if (userDAO.getUserByUsername(username) != null) {
                 showError("Username taken.");
                 return;
             }
@@ -252,12 +239,18 @@ public class LoginGUI extends JFrame {
                 return;
             }
 
-            // Register
-            User newUser = new Client(username, firstTxt.getText(), lastTxt.getText(), emailTxt.getText(), hashPassword(password));
-            newUser.setId(userDatabase.size() + 1);
-            userDatabase.put(username, newUser);
+            // Register and Save to DB
+            boolean success = userDAO.registerUser(username, 
+                                                    emailTxt.getText(), 
+                                                    hashPassword(password), 
+                                                    false // Default is not admin
+                                                );
 
-            JOptionPane.showMessageDialog(this, "Account created! You may now login.");
+            if (success) {
+                JOptionPane.showMessageDialog(this, "Account created! You may now login.");
+            } else {
+                showError("Database error: Could not create account.");
+            }
             usernameField.setText(username);
         }
     }
