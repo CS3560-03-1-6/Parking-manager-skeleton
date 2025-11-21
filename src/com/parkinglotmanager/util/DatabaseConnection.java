@@ -14,7 +14,7 @@ public class DatabaseConnection {
     // Defaults
     private static String dbUrl = "jdbc:mysql://localhost:3306/parking_lot_manager_db";
     private static String dbUser = "root";
-    private static String dbPassword = "";
+    private static String dbPassword = "password";
     private static String dbName = "parking_lot_manager_db";
     private static String dbHost = "localhost";
     private static String dbPort = "3306";
