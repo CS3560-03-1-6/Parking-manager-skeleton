@@ -1,7 +1,19 @@
 package com.parkinglotmanager.test;
 
-import com.parkinglotmanager.enums.*;
-import com.parkinglotmanager.model.*;
+import com.parkinglotmanager.enums.LotType;
+import com.parkinglotmanager.enums.SensorType;
+import com.parkinglotmanager.enums.SlotType;
+import com.parkinglotmanager.enums.VehicleMake;
+import com.parkinglotmanager.enums.VehicleType;
+import com.parkinglotmanager.model.Admin;
+import com.parkinglotmanager.model.Client;
+import com.parkinglotmanager.model.OccupancyReport;
+import com.parkinglotmanager.model.ParkingLot;
+import com.parkinglotmanager.model.ParkingSlot;
+import com.parkinglotmanager.model.Sensor;
+import com.parkinglotmanager.model.SensorReading;
+import com.parkinglotmanager.model.UserReport;
+import com.parkinglotmanager.model.VehicleSession;
 
 /**
  * Simple test class to verify new model classes work correctly
@@ -11,7 +23,7 @@ public class ModelTest {
         System.out.println("=== Parking Lot Manager System - Model Test ===\n");
 
         // Test ParkingLot
-        ParkingLot lot = new ParkingLot("LOT-001", "Downtown Garage", "123 Main St", LotType.STRUCTURE);
+        ParkingLot lot = new ParkingLot("LOT-001", "Structure 1", "123 Main St", LotType.STRUCTURE);
         System.out.println("Created: " + lot);
 
         // Test ParkingSlot

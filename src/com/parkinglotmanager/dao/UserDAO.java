@@ -1,8 +1,14 @@
 package com.parkinglotmanager.dao;
 
-import com.parkinglotmanager.model.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
+import com.parkinglotmanager.model.Admin;
+import com.parkinglotmanager.model.Client;
+import com.parkinglotmanager.model.User;
 import com.parkinglotmanager.util.DatabaseConnection;
-import java.sql.*;
 
 public class UserDAO {
 
