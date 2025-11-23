@@ -38,13 +38,23 @@ DB_PASSWORD=your_mysql_password
 
 ### **3. Build and Run:**
 
-For quick GUI launch:
+For quick GUI launch (Windows):
 ```powershell
 .\run-gui.bat
 ```
 
-For testing/development:
+For quick GUI launch (Unix/Linux):
+```bash
+.\run-gui.sh
+```
+
+For testing/development (Windows):
 ```powershell
 .\run-source.bat
+```
+
+For testing/development (Unix/Linux):
+```bash
+.\run-source.sh
 ```
 
