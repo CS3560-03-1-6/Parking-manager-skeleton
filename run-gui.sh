@@ -1,64 +1,64 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -euo pipefail
 
 echo "Parking Lot Manager - Quick Launch"
 echo "===================================="
 
-# Check MySQL JAR
 MYSQL_JAR="mysql-connector-j-9.4.0.jar"
-if [ ! -f "$MYSQL_JAR" ]; then
-    echo "WARNING: MySQL Connector JAR not found. Database features disabled."
-    MYSQL_JAR="."
+if [[ ! -f "$MYSQL_JAR" ]]; then
+  echo "WARNING: MySQL Connector JAR not found. Database features disabled."
+  MYSQL_JAR="."
 fi
 
 echo
 echo "Compiling new package (com.parkinglotmanager)..."
 
-# Clean and create build directory
-BUILD_DIR="build/com/parkinglotmanager"
-if [ -d "$BUILD_DIR" ]; then
-    rm -rf "$BUILD_DIR" # Remove existing build directory
-fi
-mkdir -p "$BUILD_DIR/enums" "$BUILD_DIR/model" "$BUILD_DIR/test" "$BUILD_DIR/gui" "$BUILD_DIR/util"
+BUILD_DIR="build"
+PKG_DIR="$BUILD_DIR/com/parkinglotmanager"
+rm -rf "$PKG_DIR"
+mkdir -p "$PKG_DIR"/{enums,model,test,gui,util}
 
-# Compile enums
-echo "Compiling enums..."
-javac -cp ".:$MYSQL_JAR" --release 8 -Xlint:-options -d "$BUILD_DIR" src/com/parkinglotmanager/enums/*.java
-if [ $? -ne 0 ]; then
+# function to run javac with check
+run_javac() {
+  echo "$1"
+  shift
+  if ! javac "$@"; then
+    echo "Compilation failed."
     exit 1
-fi
+  fi
+}
+
+# Compile enums (explicit or glob)
+run_javac "Compiling enums..." -cp ".:${MYSQL_JAR}" --release 8 -Xlint:-options -d "$BUILD_DIR" \
+  src/com/parkinglotmanager/enums/*.java
 
 # Compile utilities
-echo "Compiling utilities..."
-javac -cp "$BUILD_DIR:$MYSQL_JAR" --release 8 -Xlint:-options -d "$BUILD_DIR" src/com/parkinglotmanager/util/DatabaseConnection.java
-if [ $? -ne 0 ]; then
-    exit 1
-fi
+run_javac "Compiling utilities..." -cp "${BUILD_DIR}:${MYSQL_JAR}" --release 8 -Xlint:-options -d "$BUILD_DIR" \
+  src/com/parkinglotmanager/util/*.java
 
-# Compile models
-echo "Compiling models..."
-javac -cp "$BUILD_DIR:$MYSQL_JAR" --release 8 -Xlint:-options -d "$BUILD_DIR" src/com/parkinglotmanager/model/*.java
-if [ $? -ne 0 ]; then
-    exit 1
-fi
+# Compile models (compile all model files together to ensure Notification is included)
+run_javac "Compiling models..." -cp "${BUILD_DIR}:${MYSQL_JAR}" --release 8 -Xlint:-options -d "$BUILD_DIR" \
+  src/com/parkinglotmanager/model/*.java
+
+# Compile DAOs (compile all DAO files together)
+run_javac "Compiling Data Access Objects..." -cp "${BUILD_DIR}:${MYSQL_JAR}" --release 8 -Xlint:-options -d "$BUILD_DIR" \
+  src/com/parkinglotmanager/dao/*.java
 
 # Compile GUI
-echo "Compiling GUI..."
-javac -cp "$BUILD_DIR:$MYSQL_JAR" --release 8 -Xlint:-options -d "$BUILD_DIR" src/com/parkinglotmanager/gui/*.java
-if [ $? -ne 0 ]; then
-    exit 1
-fi
+run_javac "Compiling GUI..." -cp "${BUILD_DIR}:${MYSQL_JAR}" --release 8 -Xlint:-options -d "$BUILD_DIR" \
+  src/com/parkinglotmanager/gui/*.java
 
 # Compile test
-echo "Compiling test..."
-javac -cp "$BUILD_DIR:$MYSQL_JAR" --release 8 -Xlint:-options -d "$BUILD_DIR" src/com/parkinglotmanager/test/*.java
-if [ $? -ne 0 ]; then
-    exit 1
-fi
+run_javac "Compiling test..." -cp "${BUILD_DIR}:${MYSQL_JAR}" --release 8 -Xlint:-options -d "$BUILD_DIR" \
+  src/com/parkinglotmanager/test/*.java
 
 echo
 echo "Compilation successful!"
 echo
 echo "Launching Login Screen..."
 echo
-java -cp "$BUILD_DIR:$MYSQL_JAR" com.parkinglotmanager.gui.LoginGUI
 
+java -cp "${BUILD_DIR}:${MYSQL_JAR}" com.parkinglotmanager.gui.LoginGUI
+
+echo
+read -r -p "Press Enter to exit..."
