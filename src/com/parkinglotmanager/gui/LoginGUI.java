@@ -212,16 +212,16 @@ public class LoginGUI extends JFrame {
     private void handleSignup() {
         // Create form fields for the popup
         JTextField userTxt = new JTextField();
-        JTextField firstTxt = new JTextField();
-        JTextField lastTxt = new JTextField();
+        //JTextField firstTxt = new JTextField();
+        //JTextField lastTxt = new JTextField();
         JTextField emailTxt = new JTextField();
         JPasswordField passTxt = new JPasswordField();
         JPasswordField confTxt = new JPasswordField();
 
         Object[] message = {
             "Username:", userTxt,
-            "First Name:", firstTxt,
-            "Last Name:", lastTxt,
+            //"First Name:", firstTxt,
+            //"Last Name:", lastTxt,
             "Email:", emailTxt,
             "Password:", passTxt,
             "Confirm Password:", confTxt
