@@ -403,7 +403,7 @@ public class ParkingLotManagerGUI extends JFrame {
 
         // User info and database status
         JPanel infoPanel = new JPanel(new BorderLayout());
-        JLabel userLabel = new JLabel("Logged in as: " + currentUser.getFullName() +
+        JLabel userLabel = new JLabel("Logged in as: " + currentUser.getUsername() +
                 " (" + (isAdmin ? "Administrator" : "Client") + ")");
         userLabel.setHorizontalAlignment(SwingConstants.RIGHT);
         userLabel.setForeground(Color.BLACK);

@@ -33,14 +33,14 @@ public class UserDAO {
                 if ("moderator".equalsIgnoreCase(role)) {
                     user = new Admin(
                         rs.getString("userName"),
-                        "First", "Last", // (We didn't add First/Last to DB yet, using placeholders)
+                        "FirstMod", "LastMod", // (We didn't add First/Last to DB yet, using placeholders)
                         rs.getString("userEmail"),
                         rs.getString("passwordHash")
                     );
                 } else {
                     user = new Client(
                         rs.getString("userName"),
-                        "First", "Last",
+                        "FirstClient", "LastClient",
                         rs.getString("userEmail"),
                         rs.getString("passwordHash")
                     );
@@ -57,6 +57,8 @@ public class UserDAO {
     /**
      * Saves a new user to MySQL.
      */
+
+    //Bruh it doesn't put in DB the name
     public boolean registerUser(String username, String email, String password, boolean isAdmin) {
         String sql = "INSERT INTO User (userName, userEmail, passwordHash, privilege) VALUES (?, ?, ?, ?)";
         

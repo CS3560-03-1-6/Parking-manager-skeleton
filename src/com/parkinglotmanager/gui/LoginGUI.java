@@ -1,15 +1,33 @@
 package com.parkinglotmanager.gui;
 
-import com.parkinglotmanager.model.User;
-import com.parkinglotmanager.dao.UserDAO;
-import com.parkinglotmanager.util.DatabaseConnection;
 
-import javax.swing.*;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.FlowLayout;
+import java.awt.Font;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+
 import javax.imageio.ImageIO;
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JPasswordField;
+import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
+
+import com.parkinglotmanager.dao.UserDAO;
+import com.parkinglotmanager.model.User;
+import com.parkinglotmanager.util.DatabaseConnection;
 
 public class LoginGUI extends JFrame {
 
@@ -183,7 +201,7 @@ public class LoginGUI extends JFrame {
 
         // Success
         loggedInUser = user;
-        JOptionPane.showMessageDialog(this, "Welcome back, " + user.getFirstName() + "!");
+        JOptionPane.showMessageDialog(this, "Welcome back, " + user.getUsername() + "!");
         
         SwingUtilities.invokeLater(() -> {
             new ParkingLotManagerGUI(loggedInUser).setVisible(true);
