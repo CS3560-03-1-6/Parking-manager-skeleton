@@ -201,8 +201,8 @@ public class LoginGUI extends JFrame {
 
         // Success
         loggedInUser = user;
-        //JOptionPane.showMessageDialog(this, "Welcome back, " + user.getFullName() + "!");
-        JOptionPane.showMessageDialog(this, "Welcome back, " + user.getFirstName() + "!");
+        //JOptionPane.showMessageDialog(this, "Welcome back, " + user.getFirstName() + "!");
+        JOptionPane.showMessageDialog(this, "Welcome back, " + user.getUsername() + "!");
         
         SwingUtilities.invokeLater(() -> {
             new ParkingLotManagerGUI(loggedInUser).setVisible(true);
