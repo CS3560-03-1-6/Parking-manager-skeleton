@@ -5,7 +5,7 @@ USE parking_lot_manager_db;
 
 -- TABLE: User
 -- System users (registered + moderators)
-CREATE TABLE User (
+CREATE TABLE IF NOT EXISTS User (
     userID       INT NOT NULL AUTO_INCREMENT,
     userName     VARCHAR(50)  NOT NULL,
     userEmail    VARCHAR(100) NOT NULL,
@@ -19,7 +19,7 @@ CREATE TABLE User (
 
 -- TABLE: Lot
 -- Parking lots
-CREATE TABLE Lot (
+CREATE TABLE IF NOT EXISTS Lot (
     lotID    INT NOT NULL AUTO_INCREMENT,
     lotName  VARCHAR(50) NOT NULL,
     capacity INT         NOT NULL,
@@ -30,7 +30,7 @@ CREATE TABLE Lot (
 
 -- TABLE: Vehicle
 -- Vehicles owned by users
-CREATE TABLE Vehicle (
+CREATE TABLE IF NOT EXISTS Vehicle (
     vehicleID INT NOT NULL AUTO_INCREMENT,
     userID    INT NOT NULL,
     plate     VARCHAR(20) NOT NULL,
@@ -45,7 +45,7 @@ CREATE TABLE Vehicle (
 
 -- TABLE: ParkingReport
 -- Crowdsourced fullness reports per lot
-CREATE TABLE ParkingReport (
+CREATE TABLE IF NOT EXISTS ParkingReport (
     parkingReportID INT NOT NULL AUTO_INCREMENT,
     lotID           INT NOT NULL,
     userID          INT NOT NULL,
@@ -63,7 +63,7 @@ CREATE TABLE ParkingReport (
 
 -- TABLE: Notification
 -- Messages sent to users
-CREATE TABLE Notification (
+CREATE TABLE IF NOT EXISTS Notification (
     notificationID   INT NOT NULL AUTO_INCREMENT,
     recipientID      INT NOT NULL,
     message          VARCHAR(255) NOT NULL,
@@ -80,7 +80,7 @@ CREATE TABLE Notification (
 
 -- TABLE: ModerationAction
 -- Actions taken by moderators on reports/lots
-CREATE TABLE ModerationAction (
+CREATE TABLE IF NOT EXISTS ModerationAction (
     moderationActionID INT NOT NULL AUTO_INCREMENT,
     modID              INT NOT NULL,
     actionType         VARCHAR(30)  NOT NULL,
@@ -102,7 +102,7 @@ CREATE TABLE ModerationAction (
 
 -- TABLE: Log
 -- System log entries
-CREATE TABLE Log (
+CREATE TABLE IF NOT EXISTS Log (
     logID             INT NOT NULL AUTO_INCREMENT,
     logType           VARCHAR(30)  NOT NULL,   -- e.g. 'login', 'moderation', 'report'
     logTime           DATETIME     NOT NULL,
@@ -132,6 +132,7 @@ CREATE TABLE Log (
 
 -- SAMPLE DATA 
 -- Users
+-- Only run this sql once, multiple times will error out duplicate data
 INSERT INTO User (userID, userName, userEmail, passwordHash, privilege)
 VALUES
     (1, 'Gavin', 'gavin@cpp.edu', '(password)', 'registered'),
@@ -139,9 +140,24 @@ VALUES
 
 
 -- Lot
-INSERT INTO Lot (lotID, lotName, capacity, status)
-VALUES
-    (1, 'F', 300, 'Available');
+INSERT INTO Lot (lotID, lotName, capacity, status) VALUES
+    (1,'Structure1', 500, 'Available'),
+    (2,'Structure2', 500, 'Available'),
+    (3,'Lot B', 200, 'Available'),
+    (4,'Lot E1', 150, 'Available'),
+    (5,'Lot E2', 150, 'Available'),
+    (6,'Lot F1', 120, 'Available'),
+    (7,'Lot F10', 120, 'Available'),
+    (8,'Lot F3', 120, 'Available'),
+    (9,'Lot F5', 120, 'Available'),
+    (10,'Lot F9', 120, 'Available'),
+    (11,'Lot J', 220, 'Available'),
+    (12,'Lot K', 180, 'Available'),
+    (13,'Lot M', 180, 'Available'),
+    (14,'Lot N', 180, 'Available'),
+    (15,'Lot R', 160, 'Available'),
+    (16,'Lot T', 160, 'Available'),
+    (17,'Lot U', 140, 'Available');
 
 -- Vehicle
 INSERT INTO Vehicle (vehicleID, userID, plate, make, model, color)

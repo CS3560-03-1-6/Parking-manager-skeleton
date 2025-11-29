@@ -249,10 +249,14 @@ public class LoginGUI extends JFrame {
                 showError("Username taken.");
                 return;
             }
-            if (ADMIN_USERNAME.equalsIgnoreCase(username)) {
+            //What happens if delete
+            /*
+                if (ADMIN_USERNAME.equalsIgnoreCase(username)) {
                 showError("Cannot create admin account.");
                 return;
             }
+                 */
+
 
             // Register and Save to DB
             boolean success = userDAO.registerUser(username, 
