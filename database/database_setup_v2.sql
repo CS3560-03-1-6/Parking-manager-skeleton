@@ -1,5 +1,4 @@
 
--- Drop & recreate the database for re-run
 
 CREATE DATABASE IF NOT EXISTS parking_lot_manager_db;
 USE parking_lot_manager_db;
