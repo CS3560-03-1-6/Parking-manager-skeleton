@@ -1,8 +1,7 @@
 
 -- Drop & recreate the database for re-run
 
-DROP DATABASE IF EXISTS parking_lot_manager_db;
-CREATE DATABASE parking_lot_manager_db;
+CREATE DATABASE IF NOT EXISTS parking_lot_manager_db;
 USE parking_lot_manager_db;
 
 
