@@ -30,6 +30,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.table.DefaultTableModel;
 
+import com.parkinglotmanager.dao.UserPreferenceDAO;
 import com.parkinglotmanager.enums.LotType;
 import com.parkinglotmanager.enums.SlotType;
 import com.parkinglotmanager.enums.VehicleMake;
@@ -41,6 +42,7 @@ import com.parkinglotmanager.model.ParkingSlot;
 import com.parkinglotmanager.model.User;
 import com.parkinglotmanager.model.UserReport;
 import com.parkinglotmanager.model.VehicleSession;
+import com.parkinglotmanager.model.UserPreference;
 
 /**
  * Main GUI application for the Parking Lot Management System.
@@ -522,6 +524,14 @@ public class ParkingLotManagerGUI extends JFrame {
         refreshButton.setFont(new Font("Arial", Font.PLAIN, 12));
         refreshButton.addActionListener(e -> refreshData());
 
+
+        JButton preferencesButton = new JButton("User Preferences");
+        preferencesButton.setOpaque(true);
+        preferencesButton.setBorderPainted(true);
+        preferencesButton.setFont(new Font("Arial", Font.PLAIN, 12));
+        preferencesButton.addActionListener(e -> openUserPreferences());
+
+
         // Admin-only buttons
         JButton manageSlotsButton = new JButton("Manage Slots");
         manageSlotsButton.addActionListener(e -> manageSlots());
@@ -559,7 +569,7 @@ public class ParkingLotManagerGUI extends JFrame {
             panel.add(manageSlotsButton);
             panel.add(viewReportsButton);
         }
-
+        panel.add(preferencesButton);
         panel.add(refreshButton);
         panel.add(logoutButton);
 
@@ -696,7 +706,7 @@ public class ParkingLotManagerGUI extends JFrame {
         }
     }
 
-    /**
+        /**
      * Submit an availability report
      */
     private void submitReport() {
@@ -733,6 +743,57 @@ public class ParkingLotManagerGUI extends JFrame {
             JOptionPane.showMessageDialog(this,
                     "Thank you for your report!\n" + report,
                     "Report Submitted", JOptionPane.INFORMATION_MESSAGE);
+        }
+    }
+
+    /**
+     * Open the User Preferences dialog for the current user.
+     * Loads existing preferences from the DB (if any) and saves changes back.
+     */
+    private void openUserPreferences() {
+        // Safety check: make sure there is a logged-in user
+        if (currentUser == null) {
+            JOptionPane.showMessageDialog(this,
+                    "No logged-in user. Cannot edit preferences.",
+                    "Error",
+                    JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        // DAO for loading/saving preferences
+        UserPreferenceDAO prefDAO = new UserPreferenceDAO();
+
+        // Load existing preference for this user (may return null)
+        UserPreference existingPref = prefDAO.getPreferenceByUserId(currentUser.getId());
+
+        // Open the dialog, passing the frame, lots list, and existing preference
+        UserPreferenceDialog dialog = new UserPreferenceDialog(
+                this,
+                parkingLots,
+                existingPref
+        );
+
+        dialog.setLocationRelativeTo(this);
+        dialog.setVisible(true);  // blocks until user closes dialog
+
+        // Get back whatever the dialog ended up with (null if user cancelled)
+        UserPreference updatedPref = dialog.getUserPreference();
+        if (updatedPref != null) {
+            // Make sure the preference is tied to this user
+            updatedPref.setUserID(currentUser.getId());
+
+            boolean ok = prefDAO.saveOrUpdatePreference(updatedPref);
+            if (ok) {
+                JOptionPane.showMessageDialog(this,
+                        "Preferences saved successfully.",
+                        "Success",
+                        JOptionPane.INFORMATION_MESSAGE);
+            } else {
+                JOptionPane.showMessageDialog(this,
+                        "Could not save preferences. Check logs/console for details.",
+                        "Error",
+                        JOptionPane.ERROR_MESSAGE);
+            }
         }
     }
 
