@@ -1,14 +1,11 @@
--- ========================================
--- Drop & recreate the database (safe to re-run)
--- ========================================
-DROP DATABASE IF EXISTS parking_lot_manager_db;
-CREATE DATABASE parking_lot_manager_db;
+
+CREATE DATABASE IF NOT EXISTS parking_lot_manager_db;
 USE parking_lot_manager_db;
 
--- ========================================
+
 -- TABLE: User
--- Stores system users (registered + moderators)
--- ========================================
+-- Stores system users 
+
 CREATE TABLE User (
     userID       INT NOT NULL AUTO_INCREMENT,
     userName     VARCHAR(50)  NOT NULL,
@@ -20,10 +17,10 @@ CREATE TABLE User (
     UNIQUE KEY uq_user_email (userEmail)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- ========================================
+
 -- TABLE: Lot
--- Stores parking lot info (name, capacity, status)
--- ========================================
+-- Stores parking lot info 
+
 CREATE TABLE Lot (
     lotID    INT NOT NULL AUTO_INCREMENT,
     lotName  VARCHAR(50) NOT NULL,
@@ -32,10 +29,10 @@ CREATE TABLE Lot (
     PRIMARY KEY (lotID)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- ========================================
+
 -- TABLE: Vehicle
 -- Stores vehicles owned by users
--- ========================================
+
 CREATE TABLE Vehicle (
     vehicleID INT NOT NULL AUTO_INCREMENT,
     userID    INT NOT NULL,
@@ -48,10 +45,10 @@ CREATE TABLE Vehicle (
         FOREIGN KEY (userID) REFERENCES User(userID)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- ========================================
+
 -- TABLE: ParkingReport
 -- Stores crowd-sourced fullness reports
--- ========================================
+
 CREATE TABLE ParkingReport (
     parkingReportID INT NOT NULL AUTO_INCREMENT,
     lotID           INT NOT NULL,
@@ -68,10 +65,26 @@ CREATE TABLE ParkingReport (
     INDEX idx_report_lot_time (lotID, reportTime)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- ========================================
+-- TABLE: UserPreference
+-- Stores per-user parking and schedule preferences
+
+CREATE TABLE IF NOT EXISTS UserPreference (
+    userID                   INT NOT NULL,
+    preferredLotID           INT NULL,        -- main lot user prefers
+    preferredArrivalTime     VARCHAR(20) NULL, -- e.g. 'Morning', 'Afternoon'
+    classLocationDescription VARCHAR(255) NULL, -- notes like "Near BLDG 9"
+    PRIMARY KEY (userID),
+    CONSTRAINT fk_pref_user
+        FOREIGN KEY (userID) REFERENCES User(userID)
+        ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT fk_pref_lot
+        FOREIGN KEY (preferredLotID) REFERENCES Lot(lotID)
+        ON DELETE SET NULL ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- TABLE: Notification
 -- Stores notifications sent to users
--- ========================================
+
 CREATE TABLE Notification (
     notificationID   INT NOT NULL AUTO_INCREMENT,
     recipientID      INT NOT NULL,
@@ -86,10 +99,10 @@ CREATE TABLE Notification (
     INDEX idx_notification_recipient (recipientID, isRead)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- ========================================
+
 -- TABLE: ModerationAction
 -- Stores moderator actions on reports/lots
--- ========================================
+
 CREATE TABLE ModerationAction (
     moderationActionID INT NOT NULL AUTO_INCREMENT,
     modID              INT NOT NULL,
@@ -109,10 +122,10 @@ CREATE TABLE ModerationAction (
         ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- ========================================
+
 -- TABLE: Log
 -- Stores log entries for system actions
--- ========================================
+
 CREATE TABLE Log (
     logID              INT NOT NULL AUTO_INCREMENT,
     logType            VARCHAR(30)  NOT NULL,
@@ -141,10 +154,10 @@ CREATE TABLE Log (
         ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- ========================================
--- SAMPLE DATA (safe to re-run)
--- Preloads the database with test accounts and parking lots
--- ========================================
+
+
+--safe to rerun, Preloads the database with test accounts and parking lots
+
 
 -- Users (Gavin = userID 1, Alex = userID 2)
 INSERT INTO User (userName, userEmail, passwordHash, privilege) VALUES
@@ -191,9 +204,8 @@ INSERT INTO ModerationAction (modID, actionType, message, affectedReportID, affe
 INSERT INTO Log (logType, logTime, logMessage, userID) VALUES
     ('login', '2025-11-20 08:25:57', 'userID 1 has logged in', 1);
 
--- ========================================
+
 -- Status checks
--- ========================================
 SHOW DATABASES LIKE 'parking_lot_manager_db';
 SHOW TABLES;
 SELECT COUNT(*) AS user_count FROM User;
