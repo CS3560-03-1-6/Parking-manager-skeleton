@@ -8,60 +8,55 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-/**
- * Data access for UserPreference.
- * Allows reading and saving preferences per user.
- */
 public class UserPreferenceDAO {
 
-    // Read preferences for a given userID
-    public UserPreference getByUserID(int userID) {
-        String sql = "SELECT * FROM UserPreference WHERE userID = ?";
+    // Load preference for a given user.
+    // Returns null if no row exists yet.
+    public UserPreference getPreferenceByUserId(int userID) {
+        String sql = "SELECT userID, preferredLotID, preferredArrivalTime, classLocationDescription " +
+                     "FROM UserPreference WHERE userID = ?";
 
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+        try (Connection con = DatabaseConnection.getConnection();
+             PreparedStatement stmt = con.prepareStatement(sql)) {
 
             stmt.setInt(1, userID);
-            ResultSet rs = stmt.executeQuery();
 
-            if (rs.next()) {
-                UserPreference pref = new UserPreference();
-                pref.setUserID(rs.getInt("userID"));
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    Integer preferredLotID = (Integer) rs.getObject("preferredLotID");
+                    String arrival = rs.getString("preferredArrivalTime");
+                    String notes = rs.getString("classLocationDescription");
 
-                int lotId = rs.getInt("preferredLotID");
-                if (!rs.wasNull()) {
-                    pref.setPreferredLotID(lotId);
+                    return new UserPreference(userID, preferredLotID, arrival, notes);
+                } else {
+                    // No row yet → dialog will start empty
+                    return null;
                 }
-
-                pref.setPreferredArrivalTime(rs.getString("preferredArrivalTime"));
-                pref.setClassLocationDescription(rs.getString("classLocationDescription"));
-
-                return pref;
             }
 
         } catch (SQLException e) {
             e.printStackTrace();
+            return null;
         }
-
-        return null; // no preferences yet for this user
     }
 
-    // Inserts or updates preferences for a user
-    public boolean saveOrUpdate(UserPreference pref) {
-        // Use INSERT ... ON DUPLICATE KEY UPDATE for simple upsert
+    // Insert or update preference for a user (thanks to UNIQUE(userID))
+    public boolean saveOrUpdatePreference(UserPreference pref) {
         String sql = "INSERT INTO UserPreference " +
-                "(userID, preferredLotID, preferredArrivalTime, classLocationDescription) " +
-                "VALUES (?, ?, ?, ?) " +
-                "ON DUPLICATE KEY UPDATE " +
-                "preferredLotID = VALUES(preferredLotID), " +
-                "preferredArrivalTime = VALUES(preferredArrivalTime), " +
-                "classLocationDescription = VALUES(classLocationDescription)";
+                     "  (userID, preferredLotID, preferredArrivalTime, classLocationDescription) " +
+                     "VALUES (?, ?, ?, ?) " +
+                     "ON DUPLICATE KEY UPDATE " +
+                     "  preferredLotID = VALUES(preferredLotID), " +
+                     "  preferredArrivalTime = VALUES(preferredArrivalTime), " +
+                     "  classLocationDescription = VALUES(classLocationDescription)";
 
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+        try (Connection con = DatabaseConnection.getConnection();
+             PreparedStatement stmt = con.prepareStatement(sql)) {
 
+            // userID (must already be set on the object)
             stmt.setInt(1, pref.getUserID());
 
+            // preferredLotID can be null
             if (pref.getPreferredLotID() != null) {
                 stmt.setInt(2, pref.getPreferredLotID());
             } else {
