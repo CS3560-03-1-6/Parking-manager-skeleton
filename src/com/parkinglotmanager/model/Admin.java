@@ -13,16 +13,16 @@ public class Admin extends User {
     /**
      * Constructor for creating a new admin (before saving to database)
      */
-    public Admin(String username, String firstName, String lastName, String email, String passwordHash) {
-        super(username, firstName, lastName, email, passwordHash);
+    public Admin(String username, String firstName, String lastName, String email, String password) throws Exception {
+        super(username, firstName, lastName, email, password);
     }
 
     /**
      * Constructor for loading admin from database
      */
     public Admin(int id, String username, String firstName, String lastName, String email,
-            String passwordHash, LocalDateTime createdAt) {
-        super(id, username, firstName, lastName, email, passwordHash, createdAt);
+            String password, LocalDateTime createdAt) throws Exception {
+        super(id, username, firstName, lastName, email, password, createdAt);
     }
 
     /**

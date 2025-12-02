@@ -13,16 +13,16 @@ public class Client extends User {
     /**
      * Constructor for creating a new client (before saving to database)
      */
-    public Client(String username, String firstName, String lastName, String email, String passwordHash) {
-        super(username, firstName, lastName, email, passwordHash);
+    public Client(String username, String firstName, String lastName, String email, String password) throws Exception {
+        super(username, firstName, lastName, email, password);
     }
 
     /**
      * Constructor for loading client from database
      */
     public Client(int id, String username, String firstName, String lastName, String email,
-            String passwordHash, LocalDateTime createdAt) {
-        super(id, username, firstName, lastName, email, passwordHash, createdAt);
+            String password, LocalDateTime createdAt) throws Exception{
+        super(id, username, firstName, lastName, email, password, createdAt);
     }
 
     /**

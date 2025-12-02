@@ -68,11 +68,16 @@ public class ParkingLotManagerGUI extends JFrame {
 
     public ParkingLotManagerGUI() {
         // Default constructor for backward compatibility
-        this.currentUser = new Client("demo", "Demo", "User", "demo@parking.com", "hashed_demo");
-        this.isAdmin = false;
-        initializeData();
-        setupUI();
-        refreshData();
+        try {
+            this.currentUser = new Client("demo", "Demo", "User", "demo@parking.com", "hashed_demo");
+            this.isAdmin = false;
+            initializeData();
+            setupUI();
+            refreshData();
+        } catch (Exception e) {
+            System.err.println("bad user");
+            this.currentUser = null;
+        }
     }
 
     /**
@@ -322,9 +327,9 @@ public class ParkingLotManagerGUI extends JFrame {
         parkingLots.add(lotU);
 
         // Remove sample user creation - will be set via constructor
-        if (currentUser == null) {
-            currentUser = new Client("demo", "Demo", "User", "demo@parking.com", "hashed_password");
-        }
+        // if (currentUser == null) {
+        //     currentUser = new Client("demo", "Demo", "User", "demo@parking.com", "hashed_password");
+        // }
     }
 
     /**

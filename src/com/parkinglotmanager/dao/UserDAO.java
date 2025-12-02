@@ -1,14 +1,13 @@
 package com.parkinglotmanager.dao;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-
 import com.parkinglotmanager.model.Admin;
 import com.parkinglotmanager.model.Client;
 import com.parkinglotmanager.model.User;
 import com.parkinglotmanager.util.DatabaseConnection;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 
 public class UserDAO {
 
@@ -30,23 +29,30 @@ public class UserDAO {
                 String role = rs.getString("privilege"); // 'registered' or 'moderator'
                 User user;
                 
-                if ("moderator".equalsIgnoreCase(role)) {
+                try {
+                    if ("moderator".equalsIgnoreCase(role)) {
                     user = new Admin(
                         rs.getString("userName"),
                         "FirstMod", "LastMod", // (We didn't add First/Last to DB yet, using placeholders)
                         rs.getString("userEmail"),
                         rs.getString("passwordHash")
                     );
-                } else {
-                    user = new Client(
-                        rs.getString("userName"),
-                        "FirstClient", "LastClient",
-                        rs.getString("userEmail"),
-                        rs.getString("passwordHash")
-                    );
+                    } else {
+                        user = new Client(
+                            rs.getString("userName"),
+                            "FirstClient", "LastClient",
+                            rs.getString("userEmail"),
+                            rs.getString("passwordHash")
+                        );
+                    }
+                    user.setId(rs.getInt("userID"));
+                    return user;
+                
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
-                user.setId(rs.getInt("userID"));
-                return user;
+
+                
             }
         } catch (SQLException e) {
             e.printStackTrace();
