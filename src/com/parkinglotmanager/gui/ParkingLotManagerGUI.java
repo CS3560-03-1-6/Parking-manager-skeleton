@@ -70,7 +70,14 @@ public class ParkingLotManagerGUI extends JFrame {
 
     public ParkingLotManagerGUI() {
         // Default constructor for backward compatibility
-        this.currentUser = new Client("demo", "Demo", "User", "demo@parking.com", "hashed_demo");
+        // Create a demo client user, handling the checked Exception from Client constructor
+        try {
+            this.currentUser = new Client("demo", "Demo", "User", "demo@parking.com", "demo_password");
+        } catch (Exception e) {
+            e.printStackTrace();
+            // If demo user creation fails, leave currentUser as null
+            this.currentUser = null;
+        }
         this.isAdmin = false;
         initializeData();
         setupUI();
@@ -323,10 +330,8 @@ public class ParkingLotManagerGUI extends JFrame {
         parkingLots.add(lotT);
         parkingLots.add(lotU);
 
-        // Remove sample user creation - will be set via constructor
-        if (currentUser == null) {
-            currentUser = new Client("demo", "Demo", "User", "demo@parking.com", "hashed_password");
-        }
+        // Demo user creation is now handled in the constructor (or via LoginGUI).
+        // We no longer create a Client here, which avoids throwing checked exceptions.
     }
 
     /**
@@ -405,10 +410,13 @@ public class ParkingLotManagerGUI extends JFrame {
 
         // User info and database status
         JPanel infoPanel = new JPanel(new BorderLayout());
-        //JLabel userLabel = new JLabel("Logged in as: " + currentUser.getFullName() +
-        //        " (" + (isAdmin ? "Administrator" : "Client") + ")");
-        JLabel userLabel = new JLabel("Logged in as: " + currentUser.getUsername() +
-                " (" + (isAdmin ? "Administrator" : "Client") + ")");
+        JLabel userLabel;
+        if (currentUser != null) {
+            userLabel = new JLabel("Logged in as: " + currentUser.getUsername() +
+                    " (" + (isAdmin ? "Administrator" : "Client") + ")");
+        } else {
+            userLabel = new JLabel("Logged in as: (no user)");
+        }
         userLabel.setHorizontalAlignment(SwingConstants.RIGHT);
         userLabel.setForeground(Color.BLACK);
         
@@ -524,13 +532,11 @@ public class ParkingLotManagerGUI extends JFrame {
         refreshButton.setFont(new Font("Arial", Font.PLAIN, 12));
         refreshButton.addActionListener(e -> refreshData());
 
-
         JButton preferencesButton = new JButton("User Preferences");
         preferencesButton.setOpaque(true);
         preferencesButton.setBorderPainted(true);
         preferencesButton.setFont(new Font("Arial", Font.PLAIN, 12));
         preferencesButton.addActionListener(e -> openUserPreferences());
-
 
         // Admin-only buttons
         JButton manageSlotsButton = new JButton("Manage Slots");
@@ -643,7 +649,7 @@ public class ParkingLotManagerGUI extends JFrame {
 
             // Create session and occupy slot
             VehicleSession session = new VehicleSession(plate, vehicleType, vehicleMake,
-                    currentUser.getId(), assignedSlot.getSlotId());
+                    currentUser != null ? currentUser.getId() : -1, assignedSlot.getSlotId());
             activeSessions.add(session);
             assignedSlot.setOccupied(true, vehicleType);
 
@@ -706,7 +712,7 @@ public class ParkingLotManagerGUI extends JFrame {
         }
     }
 
-        /**
+    /**
      * Submit an availability report
      */
     private void submitReport() {
@@ -738,7 +744,8 @@ public class ParkingLotManagerGUI extends JFrame {
             String notes = notesArea.getText().trim();
 
             UserReport report = new UserReport("REPORT-" + System.currentTimeMillis(),
-                    currentUser.getId(), currentLot.getLotId(), available, confidence, notes);
+                    currentUser != null ? currentUser.getId() : -1,
+                    currentLot.getLotId(), available, confidence, notes);
 
             JOptionPane.showMessageDialog(this,
                     "Thank you for your report!\n" + report,
