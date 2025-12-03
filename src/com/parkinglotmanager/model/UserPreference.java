@@ -1,24 +1,19 @@
 package com.parkinglotmanager.model;
 
-
- //Stores per-user parking preferences and simple schedule info.
- //One UserPreference is associated with one User.
- 
+// Stores per-user parking preferences and simple schedule info.
+// One UserPreference is associated with one User.
 public class UserPreference {
 
     private int userID;
     private Integer preferredLotID;            // may be null
-    private String preferredArrivalTime;       // "Morning", "Afternoon"
+    private String preferredArrivalTime;       // e.g., "Morning", "Afternoon"
     private String classLocationDescription;   // free-form notes
 
     public UserPreference() {
     }
 
-    public UserPreference(int userID) {
-        this.userID = userID;
-    }
-
-    public UserPreference(int userID, Integer preferredLotID,
+    public UserPreference(int userID,
+                          Integer preferredLotID,
                           String preferredArrivalTime,
                           String classLocationDescription) {
         this.userID = userID;

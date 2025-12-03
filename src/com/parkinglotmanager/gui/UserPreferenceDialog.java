@@ -36,13 +36,36 @@ public class UserPreferenceDialog extends JDialog {
         JPanel formPanel = new JPanel(new GridLayout(3, 2, 8, 8));
         formPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        // Lot combo box
-        formPanel.add(new JLabel("Preferred Lot:"));
-        lotComboBox = new JComboBox<>();
-        for (ParkingLot lot : parkingLots) {
-            lotComboBox.addItem(lot); // uses ParkingLot.toString()
+      // Lot combo box
+formPanel.add(new JLabel("Preferred Lot:"));
+lotComboBox = new JComboBox<>();
+for (ParkingLot lot : parkingLots) {
+    lotComboBox.addItem(lot); // still store the actual ParkingLot objects
+}
+
+// Make the display text cleaner: "Structure 1 (LOT-001)"
+lotComboBox.setRenderer(new DefaultListCellRenderer() {
+    @Override
+    public Component getListCellRendererComponent(
+            JList<?> list,
+            Object value,
+            int index,
+            boolean isSelected,
+            boolean cellHasFocus) {
+
+        super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+
+        if (value instanceof ParkingLot) {
+            ParkingLot lot = (ParkingLot) value;
+            setText(lot.getName() + " (" + lot.getLotId() + ")");
         }
-        formPanel.add(lotComboBox);
+
+        return this;
+    }
+});
+
+formPanel.add(lotComboBox);
+
 
         // Prefill lot if existing
         if (existingPreference != null && existingPreference.getPreferredLotID() != null) {
@@ -121,3 +144,4 @@ public class UserPreferenceDialog extends JDialog {
         return saved ? userPreference : null;
     }
 }
+

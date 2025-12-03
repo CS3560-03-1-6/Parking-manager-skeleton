@@ -30,6 +30,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.table.DefaultTableModel;
 
+import com.parkinglotmanager.dao.UserPreferenceDAO;
 import com.parkinglotmanager.enums.LotType;
 import com.parkinglotmanager.enums.SlotType;
 import com.parkinglotmanager.enums.VehicleMake;
@@ -41,6 +42,7 @@ import com.parkinglotmanager.model.ParkingSlot;
 import com.parkinglotmanager.model.User;
 import com.parkinglotmanager.model.UserReport;
 import com.parkinglotmanager.model.VehicleSession;
+import com.parkinglotmanager.model.UserPreference;
 
 /**
  * Main GUI application for the Parking Lot Management System.
@@ -68,7 +70,14 @@ public class ParkingLotManagerGUI extends JFrame {
 
     public ParkingLotManagerGUI() {
         // Default constructor for backward compatibility
-        this.currentUser = new Client("demo", "Demo", "User", "demo@parking.com", "hashed_demo");
+        // Create a demo client user, handling the checked Exception from Client constructor
+        try {
+            this.currentUser = new Client("demo", "Demo", "User", "demo@parking.com", "demo_password");
+        } catch (Exception e) {
+            e.printStackTrace();
+            // If demo user creation fails, leave currentUser as null
+            this.currentUser = null;
+        }
         this.isAdmin = false;
         initializeData();
         setupUI();
@@ -321,10 +330,8 @@ public class ParkingLotManagerGUI extends JFrame {
         parkingLots.add(lotT);
         parkingLots.add(lotU);
 
-        // Remove sample user creation - will be set via constructor
-        if (currentUser == null) {
-            currentUser = new Client("demo", "Demo", "User", "demo@parking.com", "hashed_password");
-        }
+        // Demo user creation is now handled in the constructor (or via LoginGUI).
+        // We no longer create a Client here, which avoids throwing checked exceptions.
     }
 
     /**
@@ -403,10 +410,13 @@ public class ParkingLotManagerGUI extends JFrame {
 
         // User info and database status
         JPanel infoPanel = new JPanel(new BorderLayout());
-        //JLabel userLabel = new JLabel("Logged in as: " + currentUser.getFullName() +
-        //        " (" + (isAdmin ? "Administrator" : "Client") + ")");
-        JLabel userLabel = new JLabel("Logged in as: " + currentUser.getUsername() +
-                " (" + (isAdmin ? "Administrator" : "Client") + ")");
+        JLabel userLabel;
+        if (currentUser != null) {
+            userLabel = new JLabel("Logged in as: " + currentUser.getUsername() +
+                    " (" + (isAdmin ? "Administrator" : "Client") + ")");
+        } else {
+            userLabel = new JLabel("Logged in as: (no user)");
+        }
         userLabel.setHorizontalAlignment(SwingConstants.RIGHT);
         userLabel.setForeground(Color.BLACK);
         
@@ -522,6 +532,12 @@ public class ParkingLotManagerGUI extends JFrame {
         refreshButton.setFont(new Font("Arial", Font.PLAIN, 12));
         refreshButton.addActionListener(e -> refreshData());
 
+        JButton preferencesButton = new JButton("User Preferences");
+        preferencesButton.setOpaque(true);
+        preferencesButton.setBorderPainted(true);
+        preferencesButton.setFont(new Font("Arial", Font.PLAIN, 12));
+        preferencesButton.addActionListener(e -> openUserPreferences());
+
         // Admin-only buttons
         JButton manageSlotsButton = new JButton("Manage Slots");
         manageSlotsButton.addActionListener(e -> manageSlots());
@@ -559,7 +575,7 @@ public class ParkingLotManagerGUI extends JFrame {
             panel.add(manageSlotsButton);
             panel.add(viewReportsButton);
         }
-
+        panel.add(preferencesButton);
         panel.add(refreshButton);
         panel.add(logoutButton);
 
@@ -633,7 +649,7 @@ public class ParkingLotManagerGUI extends JFrame {
 
             // Create session and occupy slot
             VehicleSession session = new VehicleSession(plate, vehicleType, vehicleMake,
-                    currentUser.getId(), assignedSlot.getSlotId());
+                    currentUser != null ? currentUser.getId() : -1, assignedSlot.getSlotId());
             activeSessions.add(session);
             assignedSlot.setOccupied(true, vehicleType);
 
@@ -728,11 +744,63 @@ public class ParkingLotManagerGUI extends JFrame {
             String notes = notesArea.getText().trim();
 
             UserReport report = new UserReport("REPORT-" + System.currentTimeMillis(),
-                    currentUser.getId(), currentLot.getLotId(), available, confidence, notes);
+                    currentUser != null ? currentUser.getId() : -1,
+                    currentLot.getLotId(), available, confidence, notes);
 
             JOptionPane.showMessageDialog(this,
                     "Thank you for your report!\n" + report,
                     "Report Submitted", JOptionPane.INFORMATION_MESSAGE);
+        }
+    }
+
+    /**
+     * Open the User Preferences dialog for the current user.
+     * Loads existing preferences from the DB (if any) and saves changes back.
+     */
+    private void openUserPreferences() {
+        // Safety check: make sure there is a logged-in user
+        if (currentUser == null) {
+            JOptionPane.showMessageDialog(this,
+                    "No logged-in user. Cannot edit preferences.",
+                    "Error",
+                    JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        // DAO for loading/saving preferences
+        UserPreferenceDAO prefDAO = new UserPreferenceDAO();
+
+        // Load existing preference for this user (may return null)
+        UserPreference existingPref = prefDAO.getPreferenceByUserId(currentUser.getId());
+
+        // Open the dialog, passing the frame, lots list, and existing preference
+        UserPreferenceDialog dialog = new UserPreferenceDialog(
+                this,
+                parkingLots,
+                existingPref
+        );
+
+        dialog.setLocationRelativeTo(this);
+        dialog.setVisible(true);  // blocks until user closes dialog
+
+        // Get back whatever the dialog ended up with (null if user cancelled)
+        UserPreference updatedPref = dialog.getUserPreference();
+        if (updatedPref != null) {
+            // Make sure the preference is tied to this user
+            updatedPref.setUserID(currentUser.getId());
+
+            boolean ok = prefDAO.saveOrUpdatePreference(updatedPref);
+            if (ok) {
+                JOptionPane.showMessageDialog(this,
+                        "Preferences saved successfully.",
+                        "Success",
+                        JOptionPane.INFORMATION_MESSAGE);
+            } else {
+                JOptionPane.showMessageDialog(this,
+                        "Could not save preferences. Check logs/console for details.",
+                        "Error",
+                        JOptionPane.ERROR_MESSAGE);
+            }
         }
     }
 
