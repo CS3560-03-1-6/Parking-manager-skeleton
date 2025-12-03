@@ -1,6 +1,12 @@
+
 package com.parkinglotmanager.model;
 
+import java.security.SecureRandom;
 import java.time.LocalDateTime;
+import java.util.Arrays;
+import java.util.Base64;
+import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.PBEKeySpec;
 
 /**
  * Base User class representing system users in the parking lot management
@@ -20,26 +26,26 @@ public class User {
     /**
      * Constructor for creating a new user (before saving to database)
      */
-    public User(String username, String firstName, String lastName, String email, String passwordHash) {
+    public User(String username, String firstName, String lastName, String email, String password) throws Exception {
         this.username = username;
         this.firstName = firstName;
         this.lastName = lastName;
         this.email = email;
-        this.passwordHash = passwordHash;
+        setpassword(password);
         this.createdAt = LocalDateTime.now();
     }
 
     /**
      * Constructor for loading user from database
      */
-    public User(int id, String username, String firstName, String lastName, String email, String passwordHash,
-            LocalDateTime createdAt) {
+    public User(int id, String username, String firstName, String lastName, String email, String password,
+            LocalDateTime createdAt) throws Exception {
         this.id = id;
         this.username = username;
         this.firstName = firstName;
         this.lastName = lastName;
         this.email = email;
-        this.passwordHash = passwordHash;
+        this.passwordHash = password;
         this.createdAt = createdAt;
     }
 
@@ -95,8 +101,22 @@ public class User {
         return passwordHash;
     }
 
-    public void setPasswordHash(String passwordHash) {
-        this.passwordHash = passwordHash;
+    public void setpassword(String password) throws Exception {
+        this.passwordHash = hashingPassword(password);
+    }
+
+    private String hashingPassword(String password) throws Exception {
+        int iterations = 65536;
+        int keyLength = 256;
+
+        byte[] salt = new byte[16];
+        SecureRandom.getInstanceStrong().nextBytes(salt);
+
+        PBEKeySpec spec = new PBEKeySpec(password.toCharArray(), salt, iterations, keyLength);
+        SecretKeyFactory skf = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
+        byte[] hash = skf.generateSecret(spec).getEncoded();
+
+        return Base64.getEncoder().encodeToString(salt) + ":" + Base64.getEncoder().encodeToString(hash);
     }
 
     public LocalDateTime getCreatedAt() {
@@ -119,10 +139,24 @@ public class User {
      * Authenticate user with provided password
      * Note: In production, use proper password hashing (BCrypt, Argon2, etc.)
      */
-    public boolean authenticate(String password) {
-        // TODO: Implement proper password verification with BCrypt
-        // For now, simple comparison (NOT SECURE - for demonstration only)
-        return this.passwordHash.equals(password);
+    public boolean authenticate(String password) throws Exception {
+        try {
+            String[] parts = passwordHash.split(":");
+            byte[] salt = Base64.getDecoder().decode(parts[0]);
+            byte[] storedHash = Base64.getDecoder().decode(parts[1]);
+
+            int iterations = 65536;
+            int keyLength = 256;
+
+            PBEKeySpec spec = new PBEKeySpec(password.toCharArray(), salt, iterations, keyLength);
+            SecretKeyFactory skf = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
+            byte[] verifyHash = skf.generateSecret(spec).getEncoded();
+
+            return Arrays.equals(storedHash, verifyHash);
+        } catch (Exception e) {
+            System.err.println("error");
+            return false;
+        }
     }
 
     /**
