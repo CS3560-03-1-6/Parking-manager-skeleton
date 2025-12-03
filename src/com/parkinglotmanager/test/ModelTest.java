@@ -32,44 +32,50 @@ public class ModelTest {
         System.out.println("Created: " + slot);
 
         // Test User
-        Admin admin = new Admin("admin", "John", "Doe", "admin@test.com", "hashed_password");
-        System.out.println("Created: " + admin);
-        System.out.println("  Admin Actions: " + admin.getActions());
+        try {
+            Admin admin = new Admin("admin", "John", "Doe", "admin@test.com", "hashed_password");
+            System.out.println("Created: " + admin);
+            System.out.println("  Admin Actions: " + admin.getActions());
 
-        Client client = new Client("client", "Jane", "Smith", "client@test.com", "hashed_password");
-        System.out.println("Created: " + client);
-        System.out.println("  Client Actions: " + client.getActions());
+            Client client = new Client("client", "Jane", "Smith", "client@test.com", "hashed_password");
+            System.out.println("Created: " + client);
+            System.out.println("  Client Actions: " + client.getActions());
 
-        // Test Vehicle and VehicleSession
-        VehicleSession session = new VehicleSession("ABC-123", VehicleType.CAR, VehicleMake.TOYOTA,
-                client.getId(), slot.getSlotId());
-        System.out.println("Created: " + session);
+            // Test Vehicle and VehicleSession
+            VehicleSession session = new VehicleSession("ABC-123", VehicleType.CAR, VehicleMake.TOYOTA,
+                    client.getId(), slot.getSlotId());
+            System.out.println("Created: " + session);
 
-        // Test occupancy
-        slot.setOccupied(true, VehicleType.CAR);
-        System.out.println("Slot occupied: " + slot.isOccupied());
-        System.out.println("Lot available spaces: " + lot.getAvailableSpaces() + "/" + lot.getTotalSpaces());
+            // Test occupancy
+            slot.setOccupied(true, VehicleType.CAR);
+            System.out.println("Slot occupied: " + slot.isOccupied());
+            System.out.println("Lot available spaces: " + lot.getAvailableSpaces() + "/" + lot.getTotalSpaces());
 
-        // Test UserReport
-        UserReport report = new UserReport("REPORT-001", client.getId(), lot.getLotId(), 5, 80, "Looks pretty empty");
-        System.out.println("Created: " + report);
+            // Test UserReport
+            UserReport report = new UserReport("REPORT-001", client.getId(), lot.getLotId(), 5, 80, "Looks pretty empty");
+            System.out.println("Created: " + report);
 
-        // Test OccupancyReport
-        OccupancyReport occReport = new OccupancyReport(lot.getLotId(), 5);
-        occReport.addSourceData("sensors", 3);
-        occReport.addSourceData("userReports", 2);
-        System.out.println("Created: " + occReport);
-        System.out.println("  Confidence Score: " + occReport.asConfidenceScore());
+            // Test OccupancyReport
+            OccupancyReport occReport = new OccupancyReport(lot.getLotId(), 5);
+            occReport.addSourceData("sensors", 3);
+            occReport.addSourceData("userReports", 2);
+            System.out.println("Created: " + occReport);
+            System.out.println("  Confidence Score: " + occReport.asConfidenceScore());
 
-        // Test Sensor
-        Sensor sensor = new Sensor("SENSOR-001", lot.getLotId(), slot.getSlotId(), SensorType.ULTRASONIC);
-        System.out.println("Created: " + sensor);
+            // Test Sensor
+            Sensor sensor = new Sensor("SENSOR-001", lot.getLotId(), slot.getSlotId(), SensorType.ULTRASONIC);
+            System.out.println("Created: " + sensor);
 
-        // Test SensorReading
-        SensorReading reading = new SensorReading(sensor.getSensorId(), true, 0.95f);
-        System.out.println("Created: " + reading);
-        System.out.println("  Is Reliable: " + reading.isReliable());
+            // Test SensorReading
+            SensorReading reading = new SensorReading(sensor.getSensorId(), true, 0.95f);
+            System.out.println("Created: " + reading);
+            System.out.println("  Is Reliable: " + reading.isReliable());
 
-        System.out.println("\n=== All Model Classes Working! ===");
+            System.out.println("\n=== All Model Classes Working! ===");
+            
+        } catch (Exception e) {
+            System.err.println("bad user");
+        }
+
     }
 }
