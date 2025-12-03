@@ -154,6 +154,14 @@ INSERT INTO User (userID, userName, userEmail, passwordHash, privilege)
 VALUES
     (1, 'Gavin', 'gavin@cpp.edu', '(password)', 'registered'),
     (2, 'Alex',  'alex@cpp.edu',  '(password)', 'moderator');
+-- Admin and Client accounts for testing
+    ('admin',  'admin@cpp.edu',
+     'QZCu/rLhi7QPbvOyfwg+cg==:HbdTVitGRA+aESq9vfRMWPgYg3Fmr0ITLvUW/FgEevQ=',
+     'moderator'),
+    ('client', 'client@cpp.edu',
+     'TOT/1ef+DiLM1Y+TkKQ/kA==:uXCWMCdjSQqjW+kAgvywY9WCUy8SpeTI8IXzld3GHgM=',
+     'registered');
+
 
 
 -- Lot
