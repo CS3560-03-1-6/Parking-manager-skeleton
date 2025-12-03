@@ -1,6 +1,5 @@
 package com.parkinglotmanager.gui;
 
-
 import com.parkinglotmanager.dao.UserDAO;
 import com.parkinglotmanager.model.User;
 import com.parkinglotmanager.util.DatabaseConnection;
@@ -30,11 +29,11 @@ import javax.swing.UIManager;
 public class LoginGUI extends JFrame {
 
     // --- Constants for Styling ---
-    private static final Color COLOR_PRIMARY = new Color(41, 128, 185);   // Blue
-    private static final Color COLOR_SUCCESS = new Color(46, 204, 113);   // Green
-    private static final Color COLOR_DANGER  = new Color(231, 76, 60);    // Red
-    private static final Font  FONT_HEADER   = new Font("Arial", Font.BOLD, 24);
-    private static final Font  FONT_NORMAL   = new Font("Arial", Font.BOLD, 12);
+    private static final Color COLOR_PRIMARY = new Color(41, 128, 185); // Blue
+    private static final Color COLOR_SUCCESS = new Color(46, 204, 113); // Green
+    private static final Color COLOR_DANGER = new Color(231, 76, 60); // Red
+    private static final Font FONT_HEADER = new Font("Arial", Font.BOLD, 24);
+    private static final Font FONT_NORMAL = new Font("Arial", Font.BOLD, 12);
 
     // --- State ---
     private static final String ADMIN_USERNAME = "admin";
@@ -52,8 +51,6 @@ public class LoginGUI extends JFrame {
     // ==========================================
     // 1. INITIALIZATION & SETUP
     // ==========================================
-    
-
 
     private void setupWindow() {
         setTitle("Parking Lot Manager");
@@ -61,7 +58,7 @@ public class LoginGUI extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout(10, 10));
         setLocationRelativeTo(null); // Center screen
-        
+
         try {
             BufferedImage icon = ImageIO.read(new File("Resources/java-icon.png"));
             setIconImage(icon);
@@ -70,16 +67,16 @@ public class LoginGUI extends JFrame {
         }
 
         // Startup DB Check
-        DatabaseConnection.testConnection(); 
+        DatabaseConnection.testConnection();
     }
 
     private void buildUI() {
         // Top
         add(createHeaderPanel(), BorderLayout.NORTH);
-        
+
         // Center (Form)
         add(createMainForm(), BorderLayout.CENTER);
-        
+
         // Bottom (Info)
         add(createFooterPanel(), BorderLayout.SOUTH);
     }
@@ -92,19 +89,19 @@ public class LoginGUI extends JFrame {
         JPanel panel = new JPanel();
         panel.setBackground(COLOR_PRIMARY);
         panel.setBorder(BorderFactory.createEmptyBorder(15, 10, 15, 10));
-        
+
         JLabel titleLabel = new JLabel("Parking Manager System");
         titleLabel.setFont(FONT_HEADER);
         titleLabel.setForeground(Color.WHITE);
         panel.add(titleLabel);
-        
+
         return panel;
     }
 
     private JPanel createMainForm() {
         JPanel panel = new JPanel(new GridBagLayout());
         panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
-        
+
         // Initialize Fields
         usernameField = new JTextField(20);
         passwordField = new JPasswordField(20);
@@ -127,7 +124,9 @@ public class LoginGUI extends JFrame {
 
         // Add button panel spanning 3 columns
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.gridx = 0; gbc.gridy = 2; gbc.gridwidth = 3;
+        gbc.gridx = 0;
+        gbc.gridy = 2;
+        gbc.gridwidth = 3;
         gbc.insets = new Insets(20, 0, 0, 0);
         gbc.fill = GridBagConstraints.HORIZONTAL;
         panel.add(buttonPanel, gbc);
@@ -138,7 +137,7 @@ public class LoginGUI extends JFrame {
     private JPanel createFooterPanel() {
         JPanel panel = new JPanel();
         panel.setBorder(BorderFactory.createEmptyBorder(5, 10, 10, 10));
-        
+
         JLabel infoLabel = new JLabel("<html><center>Default: admin/admin123 or client/client123</center></html>");
         infoLabel.setForeground(Color.GRAY);
         panel.add(infoLabel);
@@ -183,34 +182,32 @@ public class LoginGUI extends JFrame {
         User user = userDAO.getUserByUsername(username);
 
         try {
-            
-        
-        if (username.isEmpty() || password.isEmpty()) {
-            showError("Please enter both username and password.");
-            return;
+
+            if (username.isEmpty() || password.isEmpty()) {
+                showError("Please enter both username and password.");
+                return;
+            }
+
+            if (user == null) {
+                showError("Account not found! Please sign up first.");
+                return;
+            }
+
+            if (!user.authenticate(password)) {
+                showError("Invalid password!");
+                return;
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-
-        if (user == null) {
-            showError("Account not found! Please sign up first.");
-            return;
-        }
-        
-
-        if (!user.authenticate(password)) {
-            showError("Invalid password!");
-            return;
-        }
-
-    } catch (Exception e) {
-        e.printStackTrace();
-    }
-
 
         // Success
         loggedInUser = user;
-        //JOptionPane.showMessageDialog(this, "Welcome back, " + user.getFirstName() + "!");
+        // JOptionPane.showMessageDialog(this, "Welcome back, " + user.getFirstName() +
+        // "!");
         JOptionPane.showMessageDialog(this, "Welcome back, " + user.getUsername() + "!");
-        
+
         SwingUtilities.invokeLater(() -> {
             new ParkingLotManagerGUI(loggedInUser).setVisible(true);
             dispose();
@@ -220,84 +217,90 @@ public class LoginGUI extends JFrame {
     private void handleSignup() {
         // Create form fields for the popup
         JTextField userTxt = new JTextField();
-        //JTextField firstTxt = new JTextField();
-        //JTextField lastTxt = new JTextField();
+        // JTextField firstTxt = new JTextField();
+        // JTextField lastTxt = new JTextField();
         JTextField emailTxt = new JTextField();
         JPasswordField passTxt = new JPasswordField();
         JPasswordField confTxt = new JPasswordField();
 
         Object[] message = {
-            "Username:", userTxt,
-            //"First Name:", firstTxt,
-            //"Last Name:", lastTxt,
-            "Email:", emailTxt,
-            "Password:", passTxt,
-            "Confirm Password:", confTxt
+                "Username:", userTxt,
+                // "First Name:", firstTxt,
+                // "Last Name:", lastTxt,
+                "Email:", emailTxt,
+                "Password:", passTxt,
+                "Confirm Password:", confTxt
         };
 
         int option = JOptionPane.showConfirmDialog(this, message, "Create Account", JOptionPane.OK_CANCEL_OPTION);
 
         if (option == JOptionPane.OK_OPTION) {
             String username = userTxt.getText().trim();
+            String email = emailTxt.getText().trim();
             String password = new String(passTxt.getPassword());
+            String confirmPassword = new String(confTxt.getPassword());
 
             UserDAO userDAO = new UserDAO();
+
             // Basic Validation
-            if (username.isEmpty() || password.isEmpty()) {
+            if (username.isEmpty() || email.isEmpty() || password.isEmpty()) {
                 showError("All fields are required.");
                 return;
             }
-            if (!password.equals(new String(confTxt.getPassword()))) {
+
+            if (!password.equals(confirmPassword)) {
                 showError("Passwords do not match.");
                 return;
             }
-            // Check if exists in DB
-            if (userDAO.getUserByUsername(username) != null) {
-                showError("Username taken.");
-                return;
-            }
-            //What happens if delete
-            /*
-                if (ADMIN_USERNAME.equalsIgnoreCase(username)) {
-                showError("Cannot create admin account.");
-                return;
-            }
-                 */
 
+            // Check if username already exists in DB
+            if (userDAO.usernameExists(username)) {
+                showError("Username already taken. Please choose another.");
+                return;
+            }
+
+            // Check if email already exists in DB
+            if (userDAO.emailExists(email)) {
+                showError("Email already registered. Please login instead.");
+                return;
+            }
 
             try {
-                // Use User class to hash using PBKDF2
-                User temp = new User(username, "", "", emailTxt.getText(), password);
-                String hashed = temp.getPasswordHash();
+                // Use User class to hash password using PBKDF2
+                User temp = new User(username, "", "", email, password);
+                String hashedPassword = temp.getPasswordHash();
 
-                boolean success = userDAO.registerUser(
-                    username,
-                    emailTxt.getText(),
-                    hashed,   // PBKDF2 hash (salt:hash)
-                    false
-                );
+                // Register user in database (CREATE operation)
+                int newUserId = userDAO.registerUser(username, email, hashedPassword, false);
 
-                if (success) {
-                    JOptionPane.showMessageDialog(this, "Account created! You may now login.");
+                if (newUserId > 0) {
+                    JOptionPane.showMessageDialog(this,
+                            "Account created successfully!\nYou may now login with your credentials.",
+                            "Success",
+                            JOptionPane.INFORMATION_MESSAGE);
+                    // Pre-fill username for convenience
+                    usernameField.setText(username);
+                    passwordField.setText("");
                 } else {
-                    showError("Database error: Could not create account.");
+                    showError("Database error: Could not create account. Please try again.");
                 }
-
-                usernameField.setText(username);
 
             } catch (Exception ex) {
                 ex.printStackTrace();
-                showError("Password hashing failed.");
+                showError("Error creating account: " + ex.getMessage());
             }
         }
     }
-        
+
     private void showError(String msg) {
         JOptionPane.showMessageDialog(this, msg, "Error", JOptionPane.ERROR_MESSAGE);
     }
 
     public static void main(String[] args) {
-        try { UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName()); } catch (Exception ignored) {}
+        try {
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+        } catch (Exception ignored) {
+        }
         SwingUtilities.invokeLater(() -> new LoginGUI().setVisible(true));
     }
 }

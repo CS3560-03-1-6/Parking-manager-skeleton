@@ -22,6 +22,12 @@ echo.
 REM Create build directory if it doesn't exist
 if not exist "build" mkdir build
 
+REM Copy config file to build directory for runtime access
+if exist "config.properties" (
+    copy /Y "config.properties" "build\config.properties" >nul
+    echo Copied config.properties to build directory
+)
+
 REM Compile all Java files with proper classpath in dependency order
 echo Compiling Java files from src directory...
 

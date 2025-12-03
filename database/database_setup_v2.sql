@@ -41,6 +41,29 @@ CREATE TABLE IF NOT EXISTS Vehicle (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 
+-- TABLE: VehicleSession
+-- Tracks active and historical parking sessions
+CREATE TABLE IF NOT EXISTS VehicleSession (
+    sessionID      INT NOT NULL AUTO_INCREMENT,
+    licensePlate   VARCHAR(20) NOT NULL,
+    vehicleType    VARCHAR(20),          -- CAR, MOTORCYCLE, etc.
+    vehicleMake    VARCHAR(50),          -- TOYOTA, HONDA, etc.
+    userID         INT NOT NULL,
+    slotID         VARCHAR(20),          -- e.g., "A-101"
+    entryTime      DATETIME NOT NULL,
+    exitTime       DATETIME NULL,        -- NULL if still parked
+    fee            DECIMAL(10,2) DEFAULT 0.00,
+    paymentStatus  VARCHAR(20) DEFAULT 'PENDING',  -- PENDING, PAID, REFUNDED
+    PRIMARY KEY (sessionID),
+    CONSTRAINT fk_session_user
+        FOREIGN KEY (userID) REFERENCES `User`(userID)
+        ON DELETE CASCADE ON UPDATE CASCADE,
+    INDEX idx_session_user (userID),
+    INDEX idx_session_active (exitTime),
+    INDEX idx_session_entry (entryTime)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
 -- TABLE: ParkingReport
 -- Crowdsourced fullness reports per lot
 CREATE TABLE IF NOT EXISTS ParkingReport (
@@ -150,11 +173,8 @@ CREATE TABLE IF NOT EXISTS Log (
 -- SAMPLE DATA 
 -- Users
 -- Only run this sql once, multiple times will error out duplicate data
-INSERT INTO User (userID, userName, userEmail, passwordHash, privilege)
+INSERT INTO User (userName, userEmail, passwordHash, privilege)
 VALUES
-    (1, 'Gavin', 'gavin@cpp.edu', '(password)', 'registered'),
-    (2, 'Alex',  'alex@cpp.edu',  '(password)', 'moderator');
--- Admin and Client accounts for testing
     ('admin',  'admin@cpp.edu',
      'QZCu/rLhi7QPbvOyfwg+cg==:HbdTVitGRA+aESq9vfRMWPgYg3Fmr0ITLvUW/FgEevQ=',
      'moderator'),
@@ -164,25 +184,25 @@ VALUES
 
 
 
--- Lot
+-- Lot - Cal Poly Pomona Parking Facilities (Based on actual campus parking)
 INSERT INTO Lot (lotID, lotName, capacity, status) VALUES
-    (1,'Structure1', 500, 'Available'),
-    (2,'Structure2', 500, 'Available'),
-    (3,'Lot B', 200, 'Available'),
-    (4,'Lot E1', 150, 'Available'),
-    (5,'Lot E2', 150, 'Available'),
-    (6,'Lot F1', 120, 'Available'),
-    (7,'Lot F10', 120, 'Available'),
-    (8,'Lot F3', 120, 'Available'),
-    (9,'Lot F5', 120, 'Available'),
-    (10,'Lot F9', 120, 'Available'),
-    (11,'Lot J', 220, 'Available'),
-    (12,'Lot K', 180, 'Available'),
-    (13,'Lot M', 180, 'Available'),
-    (14,'Lot N', 180, 'Available'),
-    (15,'Lot R', 160, 'Available'),
-    (16,'Lot T', 160, 'Available'),
-    (17,'Lot U', 140, 'Available');
+    (1,'Structure 1', 1250, 'Available'),      -- Multi-level structure near campus center
+    (2,'Structure 2', 850, 'Available'),       -- Multi-level structure near residence halls
+    (3,'Lot B', 450, 'Available'),             -- Large surface lot
+    (4,'Lot E1', 320, 'Available'),            -- Medium surface lot
+    (5,'Lot E2', 280, 'Available'),            -- Medium surface lot
+    (6,'Lot F1', 240, 'Available'),            -- Medium surface lot
+    (7,'Lot F10', 180, 'Available'),           -- Medium surface lot
+    (8,'Lot F3', 210, 'Available'),            -- Medium surface lot
+    (9,'Lot F5', 190, 'Available'),            -- Medium surface lot
+    (10,'Lot F9', 165, 'Available'),           -- Small-medium surface lot
+    (11,'Lot J', 380, 'Available'),            -- Large surface lot
+    (12,'Lot K', 420, 'Available'),            -- Large surface lot near iPoly
+    (13,'Lot M', 340, 'Available'),            -- Large surface lot
+    (14,'Lot N', 290, 'Available'),            -- Medium surface lot
+    (15,'Lot R', 260, 'Available'),            -- Medium surface lot
+    (16,'Lot T', 175, 'Available'),            -- Small-medium surface lot
+    (17,'Lot U', 310, 'Available');            -- Large surface lot near student housing
 
 -- Vehicle
 INSERT INTO Vehicle (vehicleID, userID, plate, make, model, color)

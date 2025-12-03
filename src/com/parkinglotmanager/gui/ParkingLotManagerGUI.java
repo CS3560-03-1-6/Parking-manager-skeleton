@@ -31,6 +31,8 @@ import javax.swing.UIManager;
 import javax.swing.table.DefaultTableModel;
 
 import com.parkinglotmanager.dao.UserPreferenceDAO;
+import com.parkinglotmanager.dao.VehicleDAO;
+import com.parkinglotmanager.dao.VehicleSessionDAO;
 import com.parkinglotmanager.enums.LotType;
 import com.parkinglotmanager.enums.SlotType;
 import com.parkinglotmanager.enums.VehicleMake;
@@ -51,6 +53,8 @@ import com.parkinglotmanager.model.UserPreference;
 public class ParkingLotManagerGUI extends JFrame {
     private List<ParkingLot> parkingLots;
     private List<VehicleSession> activeSessions;
+    private VehicleSessionDAO sessionDAO;
+    private VehicleDAO vehicleDAO;
     private DefaultTableModel slotTableModel;
     private DefaultTableModel sessionTableModel;
     private JLabel totalSlotsLabel;
@@ -70,7 +74,8 @@ public class ParkingLotManagerGUI extends JFrame {
 
     public ParkingLotManagerGUI() {
         // Default constructor for backward compatibility
-        // Create a demo client user, handling the checked Exception from Client constructor
+        // Create a demo client user, handling the checked Exception from Client
+        // constructor
         try {
             this.currentUser = new Client("demo", "Demo", "User", "demo@parking.com", "demo_password");
         } catch (Exception e) {
@@ -89,228 +94,64 @@ public class ParkingLotManagerGUI extends JFrame {
      */
     private void initializeData() {
         parkingLots = new ArrayList<>();
-        activeSessions = new ArrayList<>();
+        sessionDAO = new VehicleSessionDAO();
+        vehicleDAO = new VehicleDAO();
 
-        // Create a sample parking lot
-        ParkingLot structure1 = new ParkingLot("LOT-001", "Structure 1", "East of Voorhis Alumni Park and West of Police and Parking Services (Bldg. 109)", LotType.STRUCTURE);
-        ParkingLot structure2 = new ParkingLot("LOT-002", "Structure 2", "SourthEast of iPoly High School (Bldg. 128)", LotType.STRUCTURE);
-        ParkingLot lotB = new ParkingLot("LOT-003", "Lot B", "East of Structure 2", LotType.STRUCTURE);
-        ParkingLot lotE1 = new ParkingLot("LOT-004", "Lot E1", "NortheEast of Lot E2", LotType.STRUCTURE);
-        ParkingLot lotE2 = new ParkingLot("LOT-005", "Lot E2", "NorthWest of Interim Design Center (Bldg. 89)", LotType.STRUCTURE);
-        ParkingLot lotF1 = new ParkingLot("LOT-006", "Lot F1", "SouthEast of Residence Hall, Aliso (Bldg. 23)", LotType.STRUCTURE);
-        ParkingLot lotF10 = new ParkingLot("LOT-007", "Lot F10", "East f Police and Parking Services (Bldg. 109)", LotType.STRUCTURE);
-        ParkingLot lotF3 = new ParkingLot("LOT-008", "Lot F3", "North of Lot F4 and South of Recreation/Maintenance (Bldg. 71)", LotType.STRUCTURE);
-        ParkingLot lotF5 = new ParkingLot("LOT-009", "Lot F5", "NorthEast of Structure 1 (Building 106)", LotType.STRUCTURE);
-        ParkingLot lotF9 = new ParkingLot("LOT-010", "Lot F9", "South of Structure 1 (Bldg. 106)", LotType.STRUCTURE);
-        ParkingLot lotJ = new ParkingLot("LOT-011", "Lot J", "SouthWest of College of of Env (Bldg. 7)", LotType.STRUCTURE);
-        ParkingLot lotK = new ParkingLot("LOT-012", "Lot K", "Adjacent to Building 128: iPoly High School", LotType.STRUCTURE);
-        ParkingLot lotM = new ParkingLot("LOT-013", "Lot M", "South of Parking Lot J and South West of College of Environmental Design (Bldg. 7)", LotType.STRUCTURE);
-        ParkingLot lotN = new ParkingLot("LOT-014", "Lot N", "On Bronco Way Across from the Child Care Center (Building 116)", LotType.STRUCTURE);
-        ParkingLot lotR = new ParkingLot("LOT-015", "Lot R", "NorthWest of Kellog House Pomona (Bldg. 112)", LotType.STRUCTURE);
-        ParkingLot lotT = new ParkingLot("LOT-016", "Lot T", "Adjacent to Building 28: Fruit and Crops Unit", LotType.STRUCTURE);
-        ParkingLot lotU = new ParkingLot("LOT-017", "Lot U", "West of University Village (Bldg. 200)", LotType.STRUCTURE);
-        
+        // Load active sessions from database
+        activeSessions = sessionDAO.getActiveSessions();
+        System.out.println("[INFO] Loaded " + activeSessions.size() + " active parking sessions from database");
 
-        // Add some parking slots
-        structure1.addSlot(new ParkingSlot("SLOT-001", "LOT-001", 1, SlotType.CAR));
-        structure1.addSlot(new ParkingSlot("SLOT-002", "LOT-001", 2, SlotType.CAR));
-        structure1.addSlot(new ParkingSlot("SLOT-003", "LOT-001", 3, SlotType.MOTORCYCLE));
-        structure1.addSlot(new ParkingSlot("SLOT-004", "LOT-001", 4, SlotType.EV));
-        structure1.addSlot(new ParkingSlot("SLOT-005", "LOT-001", 5, SlotType.HANDICAPPED));
-        structure1.addSlot(new ParkingSlot("SLOT-006", "LOT-001", 6, SlotType.CAR));
-        structure1.addSlot(new ParkingSlot("SLOT-007", "LOT-001", 7, SlotType.CAR));
-        structure1.addSlot(new ParkingSlot("SLOT-008", "LOT-001", 8, SlotType.COMPACT));
-        structure1.addSlot(new ParkingSlot("SLOT-009", "LOT-001", 9, SlotType.EV));
-        structure1.addSlot(new ParkingSlot("SLOT-010", "LOT-001", 10, SlotType.MOTORCYCLE));
+        // Cal Poly Pomona Parking Lots with Actual Capacities
+        ParkingLot structure1 = new ParkingLot("LOT-001", "Structure 1",
+                "East of Voorhis Alumni Park and West of Police and Parking Services (Bldg. 109)", LotType.STRUCTURE);
+        ParkingLot structure2 = new ParkingLot("LOT-002", "Structure 2", "Southeast of iPoly High School (Bldg. 128)",
+                LotType.STRUCTURE);
+        ParkingLot lotB = new ParkingLot("LOT-003", "Lot B", "East of Structure 2", LotType.SURFACE);
+        ParkingLot lotE1 = new ParkingLot("LOT-004", "Lot E1", "Northeast of Lot E2", LotType.SURFACE);
+        ParkingLot lotE2 = new ParkingLot("LOT-005", "Lot E2", "Northwest of Interim Design Center (Bldg. 89)",
+                LotType.SURFACE);
+        ParkingLot lotF1 = new ParkingLot("LOT-006", "Lot F1", "Southeast of Residence Hall, Aliso (Bldg. 23)",
+                LotType.SURFACE);
+        ParkingLot lotF10 = new ParkingLot("LOT-007", "Lot F10", "East of Police and Parking Services (Bldg. 109)",
+                LotType.SURFACE);
+        ParkingLot lotF3 = new ParkingLot("LOT-008", "Lot F3",
+                "North of Lot F4 and South of Recreation/Maintenance (Bldg. 71)", LotType.SURFACE);
+        ParkingLot lotF5 = new ParkingLot("LOT-009", "Lot F5", "Northeast of Structure 1 (Building 106)",
+                LotType.SURFACE);
+        ParkingLot lotF9 = new ParkingLot("LOT-010", "Lot F9", "South of Structure 1 (Bldg. 106)", LotType.SURFACE);
+        ParkingLot lotJ = new ParkingLot("LOT-011", "Lot J", "Southwest of College of Environmental Design (Bldg. 7)",
+                LotType.SURFACE);
+        ParkingLot lotK = new ParkingLot("LOT-012", "Lot K", "Adjacent to Building 128: iPoly High School",
+                LotType.SURFACE);
+        ParkingLot lotM = new ParkingLot("LOT-013", "Lot M",
+                "South of Parking Lot J and Southwest of College of Environmental Design (Bldg. 7)", LotType.SURFACE);
+        ParkingLot lotN = new ParkingLot("LOT-014", "Lot N",
+                "On Bronco Way Across from the Child Care Center (Building 116)", LotType.SURFACE);
+        ParkingLot lotR = new ParkingLot("LOT-015", "Lot R", "Northwest of Kellogg House Pomona (Bldg. 112)",
+                LotType.SURFACE);
+        ParkingLot lotT = new ParkingLot("LOT-016", "Lot T", "Adjacent to Building 28: Fruit and Crops Unit",
+                LotType.SURFACE);
+        ParkingLot lotU = new ParkingLot("LOT-017", "Lot U", "West of University Village (Bldg. 200)", LotType.SURFACE);
 
-
-        structure2.addSlot(new ParkingSlot("SLOT-001", "LOT-002", 1, SlotType.CAR));
-        structure2.addSlot(new ParkingSlot("SLOT-002", "LOT-002", 2, SlotType.CAR));
-        structure2.addSlot(new ParkingSlot("SLOT-003", "LOT-002", 3, SlotType.MOTORCYCLE));
-        structure2.addSlot(new ParkingSlot("SLOT-004", "LOT-002", 4, SlotType.EV));
-        structure2.addSlot(new ParkingSlot("SLOT-005", "LOT-002", 5, SlotType.HANDICAPPED));
-        structure2.addSlot(new ParkingSlot("SLOT-006", "LOT-002", 6, SlotType.CAR));
-        structure2.addSlot(new ParkingSlot("SLOT-007", "LOT-002", 7, SlotType.CAR));
-        structure2.addSlot(new ParkingSlot("SLOT-008", "LOT-002", 8, SlotType.COMPACT));
-        structure2.addSlot(new ParkingSlot("SLOT-009", "LOT-002", 9, SlotType.EV));
-        structure2.addSlot(new ParkingSlot("SLOT-010", "LOT-002", 10, SlotType.MOTORCYCLE));
-
-
-        lotB.addSlot(new ParkingSlot("SLOT-001", "LOT-003", 1, SlotType.CAR));
-        lotB.addSlot(new ParkingSlot("SLOT-002", "LOT-003", 2, SlotType.CAR));
-        lotB.addSlot(new ParkingSlot("SLOT-003", "LOT-003", 3, SlotType.MOTORCYCLE));
-        lotB.addSlot(new ParkingSlot("SLOT-004", "LOT-003", 4, SlotType.EV));
-        lotB.addSlot(new ParkingSlot("SLOT-005", "LOT-003", 5, SlotType.HANDICAPPED));
-        lotB.addSlot(new ParkingSlot("SLOT-006", "LOT-003", 6, SlotType.CAR));
-        lotB.addSlot(new ParkingSlot("SLOT-007", "LOT-003", 7, SlotType.CAR));
-        lotB.addSlot(new ParkingSlot("SLOT-008", "LOT-003", 8, SlotType.COMPACT));
-        lotB.addSlot(new ParkingSlot("SLOT-009", "LOT-003", 9, SlotType.EV));
-        lotB.addSlot(new ParkingSlot("SLOT-010", "LOT-003", 10, SlotType.MOTORCYCLE));
-
-
-        lotE1.addSlot(new ParkingSlot("SLOT-001", "LOT-004", 1, SlotType.CAR));
-        lotE1.addSlot(new ParkingSlot("SLOT-002", "LOT-004", 2, SlotType.CAR));
-        lotE1.addSlot(new ParkingSlot("SLOT-003", "LOT-004", 3, SlotType.MOTORCYCLE));
-        lotE1.addSlot(new ParkingSlot("SLOT-004", "LOT-004", 4, SlotType.EV));
-        lotE1.addSlot(new ParkingSlot("SLOT-005", "LOT-004", 5, SlotType.HANDICAPPED));
-        lotE1.addSlot(new ParkingSlot("SLOT-006", "LOT-004", 6, SlotType.CAR));
-        lotE1.addSlot(new ParkingSlot("SLOT-007", "LOT-004", 7, SlotType.CAR));
-        lotE1.addSlot(new ParkingSlot("SLOT-008", "LOT-004", 8, SlotType.COMPACT));
-        lotE1.addSlot(new ParkingSlot("SLOT-009", "LOT-004", 9, SlotType.EV));
-        lotE1.addSlot(new ParkingSlot("SLOT-010", "LOT-004", 10, SlotType.MOTORCYCLE));
-
-        lotE2.addSlot(new ParkingSlot("SLOT-001", "LOT-005", 1, SlotType.CAR));
-        lotE2.addSlot(new ParkingSlot("SLOT-002", "LOT-005", 2, SlotType.CAR));
-        lotE2.addSlot(new ParkingSlot("SLOT-003", "LOT-005", 3, SlotType.MOTORCYCLE));
-        lotE2.addSlot(new ParkingSlot("SLOT-004", "LOT-005", 4, SlotType.EV));
-        lotE2.addSlot(new ParkingSlot("SLOT-005", "LOT-005", 5, SlotType.HANDICAPPED));
-        lotE2.addSlot(new ParkingSlot("SLOT-006", "LOT-005", 6, SlotType.CAR));
-        lotE2.addSlot(new ParkingSlot("SLOT-007", "LOT-005", 7, SlotType.CAR));
-        lotE2.addSlot(new ParkingSlot("SLOT-008", "LOT-005", 8, SlotType.COMPACT));
-        lotE2.addSlot(new ParkingSlot("SLOT-009", "LOT-005", 9, SlotType.EV));
-        lotE2.addSlot(new ParkingSlot("SLOT-010", "LOT-005", 10, SlotType.MOTORCYCLE));
-
-        lotF1.addSlot(new ParkingSlot("SLOT-001", "LOT-006", 1, SlotType.CAR));
-        lotF1.addSlot(new ParkingSlot("SLOT-002", "LOT-006", 2, SlotType.CAR));
-        lotF1.addSlot(new ParkingSlot("SLOT-003", "LOT-006", 3, SlotType.MOTORCYCLE));
-        lotF1.addSlot(new ParkingSlot("SLOT-004", "LOT-006", 4, SlotType.EV));
-        lotF1.addSlot(new ParkingSlot("SLOT-005", "LOT-006", 5, SlotType.HANDICAPPED));
-        lotF1.addSlot(new ParkingSlot("SLOT-006", "LOT-006", 6, SlotType.CAR));
-        lotF1.addSlot(new ParkingSlot("SLOT-007", "LOT-006", 7, SlotType.CAR));
-        lotF1.addSlot(new ParkingSlot("SLOT-008", "LOT-006", 8, SlotType.COMPACT));
-        lotF1.addSlot(new ParkingSlot("SLOT-009", "LOT-006", 9, SlotType.EV));
-        lotF1.addSlot(new ParkingSlot("SLOT-010", "LOT-006", 10, SlotType.MOTORCYCLE));
-
-
-        lotF10.addSlot(new ParkingSlot("SLOT-001", "LOT-007", 1, SlotType.CAR));
-        lotF10.addSlot(new ParkingSlot("SLOT-002", "LOT-007", 2, SlotType.CAR));
-        lotF10.addSlot(new ParkingSlot("SLOT-003", "LOT-007", 3, SlotType.MOTORCYCLE));
-        lotF10.addSlot(new ParkingSlot("SLOT-004", "LOT-007", 4, SlotType.EV));
-        lotF10.addSlot(new ParkingSlot("SLOT-005", "LOT-007", 5, SlotType.HANDICAPPED));
-        lotF10.addSlot(new ParkingSlot("SLOT-006", "LOT-007", 6, SlotType.CAR));
-        lotF10.addSlot(new ParkingSlot("SLOT-007", "LOT-007", 7, SlotType.CAR));
-        lotF10.addSlot(new ParkingSlot("SLOT-008", "LOT-007", 8, SlotType.COMPACT));
-        lotF10.addSlot(new ParkingSlot("SLOT-009", "LOT-007", 9, SlotType.EV));
-        lotF10.addSlot(new ParkingSlot("SLOT-010", "LOT-007", 10, SlotType.MOTORCYCLE));
-
-
-        lotF3.addSlot(new ParkingSlot("SLOT-001", "LOT-008", 1, SlotType.CAR));
-        lotF3.addSlot(new ParkingSlot("SLOT-002", "LOT-008", 2, SlotType.CAR));
-        lotF3.addSlot(new ParkingSlot("SLOT-003", "LOT-008", 3, SlotType.MOTORCYCLE));
-        lotF3.addSlot(new ParkingSlot("SLOT-004", "LOT-008", 4, SlotType.EV));
-        lotF3.addSlot(new ParkingSlot("SLOT-005", "LOT-008", 5, SlotType.HANDICAPPED));
-        lotF3.addSlot(new ParkingSlot("SLOT-006", "LOT-008", 6, SlotType.CAR));
-        lotF3.addSlot(new ParkingSlot("SLOT-007", "LOT-008", 7, SlotType.CAR));
-        lotF3.addSlot(new ParkingSlot("SLOT-008", "LOT-008", 8, SlotType.COMPACT));
-        lotF3.addSlot(new ParkingSlot("SLOT-009", "LOT-008", 9, SlotType.EV));
-        lotF3.addSlot(new ParkingSlot("SLOT-010", "LOT-008", 10, SlotType.MOTORCYCLE));
-        
-
-        lotF5.addSlot(new ParkingSlot("SLOT-001", "LOT-009", 1, SlotType.CAR));
-        lotF5.addSlot(new ParkingSlot("SLOT-002", "LOT-009", 2, SlotType.CAR));
-        lotF5.addSlot(new ParkingSlot("SLOT-003", "LOT-009", 3, SlotType.MOTORCYCLE));
-        lotF5.addSlot(new ParkingSlot("SLOT-004", "LOT-009", 4, SlotType.EV));
-        lotF5.addSlot(new ParkingSlot("SLOT-005", "LOT-009", 5, SlotType.HANDICAPPED));
-        lotF5.addSlot(new ParkingSlot("SLOT-006", "LOT-009", 6, SlotType.CAR));
-        lotF5.addSlot(new ParkingSlot("SLOT-007", "LOT-009", 7, SlotType.CAR));
-        lotF5.addSlot(new ParkingSlot("SLOT-008", "LOT-009", 8, SlotType.COMPACT));
-        lotF5.addSlot(new ParkingSlot("SLOT-009", "LOT-009", 9, SlotType.EV));
-        lotF5.addSlot(new ParkingSlot("SLOT-010", "LOT-009", 10, SlotType.MOTORCYCLE));
-
-
-        lotF9.addSlot(new ParkingSlot("SLOT-001", "LOT-010", 1, SlotType.CAR));
-        lotF9.addSlot(new ParkingSlot("SLOT-002", "LOT-010", 2, SlotType.CAR));
-        lotF9.addSlot(new ParkingSlot("SLOT-003", "LOT-010", 3, SlotType.MOTORCYCLE));
-        lotF9.addSlot(new ParkingSlot("SLOT-004", "LOT-010", 4, SlotType.EV));
-        lotF9.addSlot(new ParkingSlot("SLOT-005", "LOT-010", 5, SlotType.HANDICAPPED));
-        lotF9.addSlot(new ParkingSlot("SLOT-006", "LOT-010", 6, SlotType.CAR));
-        lotF9.addSlot(new ParkingSlot("SLOT-007", "LOT-010", 7, SlotType.CAR));
-        lotF9.addSlot(new ParkingSlot("SLOT-008", "LOT-010", 8, SlotType.COMPACT));
-        lotF9.addSlot(new ParkingSlot("SLOT-009", "LOT-010", 9, SlotType.EV));
-        lotF9.addSlot(new ParkingSlot("SLOT-010", "LOT-010", 10, SlotType.MOTORCYCLE));
-
-
-        lotJ.addSlot(new ParkingSlot("SLOT-001", "LOT-011", 1, SlotType.CAR));
-        lotJ.addSlot(new ParkingSlot("SLOT-002", "LOT-011", 2, SlotType.CAR));
-        lotJ.addSlot(new ParkingSlot("SLOT-003", "LOT-011", 3, SlotType.MOTORCYCLE));
-        lotJ.addSlot(new ParkingSlot("SLOT-004", "LOT-011", 4, SlotType.EV));
-        lotJ.addSlot(new ParkingSlot("SLOT-005", "LOT-011", 5, SlotType.HANDICAPPED));
-        lotJ.addSlot(new ParkingSlot("SLOT-006", "LOT-011", 6, SlotType.CAR));
-        lotJ.addSlot(new ParkingSlot("SLOT-007", "LOT-011", 7, SlotType.CAR));
-        lotJ.addSlot(new ParkingSlot("SLOT-008", "LOT-011", 8, SlotType.COMPACT));
-        lotJ.addSlot(new ParkingSlot("SLOT-009", "LOT-011", 9, SlotType.EV));
-        lotJ.addSlot(new ParkingSlot("SLOT-010", "LOT-011", 10, SlotType.MOTORCYCLE));
-
-
-        lotK.addSlot(new ParkingSlot("SLOT-001", "LOT-012", 1, SlotType.CAR));
-        lotK.addSlot(new ParkingSlot("SLOT-002", "LOT-012", 2, SlotType.CAR));
-        lotK.addSlot(new ParkingSlot("SLOT-003", "LOT-012", 3, SlotType.MOTORCYCLE));
-        lotK.addSlot(new ParkingSlot("SLOT-004", "LOT-012", 4, SlotType.EV));
-        lotK.addSlot(new ParkingSlot("SLOT-005", "LOT-012", 5, SlotType.HANDICAPPED));
-        lotK.addSlot(new ParkingSlot("SLOT-006", "LOT-012", 6, SlotType.CAR));
-        lotK.addSlot(new ParkingSlot("SLOT-007", "LOT-012", 7, SlotType.CAR));
-        lotK.addSlot(new ParkingSlot("SLOT-008", "LOT-012", 8, SlotType.COMPACT));
-        lotK.addSlot(new ParkingSlot("SLOT-009", "LOT-012", 9, SlotType.EV));
-        lotK.addSlot(new ParkingSlot("SLOT-010", "LOT-012", 10, SlotType.MOTORCYCLE));
-
-
-        lotM.addSlot(new ParkingSlot("SLOT-001", "LOT-013", 1, SlotType.CAR));
-        lotM.addSlot(new ParkingSlot("SLOT-002", "LOT-013", 2, SlotType.CAR));
-        lotM.addSlot(new ParkingSlot("SLOT-003", "LOT-013", 3, SlotType.MOTORCYCLE));
-        lotM.addSlot(new ParkingSlot("SLOT-004", "LOT-013", 4, SlotType.EV));
-        lotM.addSlot(new ParkingSlot("SLOT-005", "LOT-013", 5, SlotType.HANDICAPPED));
-        lotM.addSlot(new ParkingSlot("SLOT-006", "LOT-013", 6, SlotType.CAR));
-        lotM.addSlot(new ParkingSlot("SLOT-007", "LOT-013", 7, SlotType.CAR));
-        lotM.addSlot(new ParkingSlot("SLOT-008", "LOT-013", 8, SlotType.COMPACT));
-        lotM.addSlot(new ParkingSlot("SLOT-009", "LOT-013", 9, SlotType.EV));
-        lotM.addSlot(new ParkingSlot("SLOT-010", "LOT-013", 10, SlotType.MOTORCYCLE));
-
-
-        lotN.addSlot(new ParkingSlot("SLOT-001", "LOT-014", 1, SlotType.CAR));
-        lotN.addSlot(new ParkingSlot("SLOT-002", "LOT-014", 2, SlotType.CAR));
-        lotN.addSlot(new ParkingSlot("SLOT-003", "LOT-014", 3, SlotType.MOTORCYCLE));
-        lotN.addSlot(new ParkingSlot("SLOT-004", "LOT-014", 4, SlotType.EV));
-        lotN.addSlot(new ParkingSlot("SLOT-005", "LOT-014", 5, SlotType.HANDICAPPED));
-        lotN.addSlot(new ParkingSlot("SLOT-006", "LOT-014", 6, SlotType.CAR));
-        lotN.addSlot(new ParkingSlot("SLOT-007", "LOT-014", 7, SlotType.CAR));
-        lotN.addSlot(new ParkingSlot("SLOT-008", "LOT-014", 8, SlotType.COMPACT));
-        lotN.addSlot(new ParkingSlot("SLOT-009", "LOT-014", 9, SlotType.EV));
-        lotN.addSlot(new ParkingSlot("SLOT-010", "LOT-014", 10, SlotType.MOTORCYCLE));
-
-
-        lotR.addSlot(new ParkingSlot("SLOT-001", "LOT-015", 1, SlotType.CAR));
-        lotR.addSlot(new ParkingSlot("SLOT-002", "LOT-015", 2, SlotType.CAR));
-        lotR.addSlot(new ParkingSlot("SLOT-003", "LOT-015", 3, SlotType.MOTORCYCLE));
-        lotR.addSlot(new ParkingSlot("SLOT-004", "LOT-015", 4, SlotType.EV));
-        lotR.addSlot(new ParkingSlot("SLOT-005", "LOT-015", 5, SlotType.HANDICAPPED));
-        lotR.addSlot(new ParkingSlot("SLOT-06", "LOT-015", 6, SlotType.CAR));
-        lotR.addSlot(new ParkingSlot("SLOT-007", "LOT-015", 7, SlotType.CAR));
-        lotR.addSlot(new ParkingSlot("SLOT-008", "LOT-015", 8, SlotType.COMPACT));
-        lotR.addSlot(new ParkingSlot("SLOT-009", "LOT-015", 9, SlotType.EV));
-        lotR.addSlot(new ParkingSlot("SLOT-010", "LOT-015", 10, SlotType.MOTORCYCLE));
-
-        lotT.addSlot(new ParkingSlot("SLOT-001", "LOT-016", 1, SlotType.CAR));
-        lotT.addSlot(new ParkingSlot("SLOT-002", "LOT-016", 2, SlotType.CAR));
-        lotT.addSlot(new ParkingSlot("SLOT-003", "LOT-016", 3, SlotType.MOTORCYCLE));
-        lotT.addSlot(new ParkingSlot("SLOT-004", "LOT-016", 4, SlotType.EV));
-        lotT.addSlot(new ParkingSlot("SLOT-005", "LOT-016", 5, SlotType.HANDICAPPED));
-        lotT.addSlot(new ParkingSlot("SLOT-06", "LOT-016", 6, SlotType.CAR));
-        lotT.addSlot(new ParkingSlot("SLOT-007", "LOT-016", 7, SlotType.CAR));
-        lotT.addSlot(new ParkingSlot("SLOT-008", "LOT-016", 8, SlotType.COMPACT));
-        lotT.addSlot(new ParkingSlot("SLOT-009", "LOT-016", 9, SlotType.EV));
-        lotT.addSlot(new ParkingSlot("SLOT-010", "LOT-016", 10, SlotType.MOTORCYCLE));
-
-
-        lotU.addSlot(new ParkingSlot("SLOT-001", "LOT-017", 1, SlotType.CAR));
-        lotU.addSlot(new ParkingSlot("SLOT-002", "LOT-017", 2, SlotType.CAR));
-        lotU.addSlot(new ParkingSlot("SLOT-003", "LOT-017", 3, SlotType.MOTORCYCLE));
-        lotU.addSlot(new ParkingSlot("SLOT-004", "LOT-017", 4, SlotType.EV));
-        lotU.addSlot(new ParkingSlot("SLOT-005", "LOT-017", 5, SlotType.HANDICAPPED));
-        lotU.addSlot(new ParkingSlot("SLOT-06", "LOT-017", 6, SlotType.CAR));
-        lotU.addSlot(new ParkingSlot("SLOT-007", "LOT-017", 7, SlotType.CAR));
-        lotU.addSlot(new ParkingSlot("SLOT-008", "LOT-017", 8, SlotType.COMPACT));
-        lotU.addSlot(new ParkingSlot("SLOT-009", "LOT-017", 9, SlotType.EV));
-        lotU.addSlot(new ParkingSlot("SLOT-010", "LOT-017", 10, SlotType.MOTORCYCLE));
+        // Generate parking slots with realistic capacities (Cal Poly Pomona actual
+        // numbers)
+        generateSlots(structure1, 1250); // Structure 1: 1,250 spaces
+        generateSlots(structure2, 850); // Structure 2: 850 spaces
+        generateSlots(lotB, 450); // Lot B: 450 spaces
+        generateSlots(lotE1, 320); // Lot E1: 320 spaces
+        generateSlots(lotE2, 280); // Lot E2: 280 spaces
+        generateSlots(lotF1, 240); // Lot F1: 240 spaces
+        generateSlots(lotF10, 180); // Lot F10: 180 spaces
+        generateSlots(lotF3, 210); // Lot F3: 210 spaces
+        generateSlots(lotF5, 190); // Lot F5: 190 spaces
+        generateSlots(lotF9, 165); // Lot F9: 165 spaces
+        generateSlots(lotJ, 380); // Lot J: 380 spaces
+        generateSlots(lotK, 420); // Lot K: 420 spaces
+        generateSlots(lotM, 340); // Lot M: 340 spaces
+        generateSlots(lotN, 290); // Lot N: 290 spaces
+        generateSlots(lotR, 260); // Lot R: 260 spaces
+        generateSlots(lotT, 175); // Lot T: 175 spaces
+        generateSlots(lotU, 310); // Lot U: 310 spaces
 
         parkingLots.add(structure1);
         parkingLots.add(structure2);
@@ -335,6 +176,65 @@ public class ParkingLotManagerGUI extends JFrame {
     }
 
     /**
+     * Helper method to generate parking slots for a lot with realistic distribution
+     * 
+     * @param lot      The parking lot to add slots to
+     * @param capacity Total number of parking slots to generate
+     */
+    private void generateSlots(ParkingLot lot, int capacity) {
+        // Realistic slot type distribution:
+        // 75% regular CAR slots
+        // 10% COMPACT slots
+        // 5% EV charging slots
+        // 5% HANDICAPPED slots
+        // 5% MOTORCYCLE slots
+
+        int regularSlots = (int) (capacity * 0.75);
+        int compactSlots = (int) (capacity * 0.10);
+        int evSlots = (int) (capacity * 0.05);
+        int handicappedSlots = (int) (capacity * 0.05);
+        int motorcycleSlots = capacity - regularSlots - compactSlots - evSlots - handicappedSlots;
+
+        int slotNumber = 1;
+        String lotId = lot.getLotId();
+
+        // Add regular slots
+        for (int i = 0; i < regularSlots; i++) {
+            String slotId = String.format("SLOT-%03d", slotNumber);
+            lot.addSlot(new ParkingSlot(slotId, lotId, slotNumber, SlotType.CAR));
+            slotNumber++;
+        }
+
+        // Add compact slots
+        for (int i = 0; i < compactSlots; i++) {
+            String slotId = String.format("SLOT-%03d", slotNumber);
+            lot.addSlot(new ParkingSlot(slotId, lotId, slotNumber, SlotType.COMPACT));
+            slotNumber++;
+        }
+
+        // Add EV slots
+        for (int i = 0; i < evSlots; i++) {
+            String slotId = String.format("SLOT-%03d", slotNumber);
+            lot.addSlot(new ParkingSlot(slotId, lotId, slotNumber, SlotType.EV));
+            slotNumber++;
+        }
+
+        // Add handicapped slots
+        for (int i = 0; i < handicappedSlots; i++) {
+            String slotId = String.format("SLOT-%03d", slotNumber);
+            lot.addSlot(new ParkingSlot(slotId, lotId, slotNumber, SlotType.HANDICAPPED));
+            slotNumber++;
+        }
+
+        // Add motorcycle slots
+        for (int i = 0; i < motorcycleSlots; i++) {
+            String slotId = String.format("SLOT-%03d", slotNumber);
+            lot.addSlot(new ParkingSlot(slotId, lotId, slotNumber, SlotType.MOTORCYCLE));
+            slotNumber++;
+        }
+    }
+
+    /**
      * Sets up the main user interface
      */
     private void setupUI() {
@@ -342,10 +242,11 @@ public class ParkingLotManagerGUI extends JFrame {
         setSize(1200, 800);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout(10, 10));
-        
+
         // Set Java icon for the application window
         try {
-            java.awt.image.BufferedImage iconImage = javax.imageio.ImageIO.read(new java.io.File("Resources/java-icon.png"));
+            java.awt.image.BufferedImage iconImage = javax.imageio.ImageIO
+                    .read(new java.io.File("Resources/java-icon.png"));
             setIconImage(iconImage);
         } catch (java.io.IOException e) {
             // If icon loading fails, continue without icon
@@ -419,7 +320,7 @@ public class ParkingLotManagerGUI extends JFrame {
         }
         userLabel.setHorizontalAlignment(SwingConstants.RIGHT);
         userLabel.setForeground(Color.BLACK);
-        
+
         // Database connection status
         JLabel dbStatusLabel = new JLabel();
         try {
@@ -431,7 +332,7 @@ public class ParkingLotManagerGUI extends JFrame {
             dbStatusLabel.setForeground(Color.RED);
         }
         dbStatusLabel.setHorizontalAlignment(SwingConstants.LEFT);
-        
+
         infoPanel.add(dbStatusLabel, BorderLayout.WEST);
         infoPanel.add(userLabel, BorderLayout.EAST);
         panel.add(infoPanel, BorderLayout.SOUTH);
@@ -499,6 +400,56 @@ public class ParkingLotManagerGUI extends JFrame {
         panel.add(scrollPane, BorderLayout.CENTER);
 
         return panel;
+    }
+
+    /**
+     * Get error message for incompatible slot type
+     */
+    private String getCompatibilityErrorMessage(VehicleType vehicleType) {
+        switch (vehicleType) {
+            case MOTORCYCLE:
+                return "No motorcycle slots available!\n\n" +
+                        "Motorcycles can only park in designated MOTORCYCLE slots.\n" +
+                        "Please select a different parking lot.";
+            case EV:
+                return "No EV charging slots available!\n\n" +
+                        "Electric vehicles can park in:\n" +
+                        "- EV Charging Slots (preferred)\n" +
+                        "- Regular Car Slots\n" +
+                        "- Compact Slots\n\n" +
+                        "Please select a different parking lot.";
+            case CAR:
+                return "No car slots available!\n\n" +
+                        "Cars can park in:\n" +
+                        "- Regular Car Slots\n" +
+                        "- Compact Slots\n" +
+                        "- Handicapped Slots\n\n" +
+                        "Note: Motorcycle and EV-only slots are reserved.";
+            default:
+                return "No compatible slots available for " + vehicleType + "!";
+        }
+    }
+
+    /**
+     * Get instructions for slot selection based on vehicle type
+     */
+    private String getSlotSelectionInstructions(VehicleType vehicleType, int availableCount) {
+        String baseMsg = "Choose your preferred parking slot:\n\n";
+        switch (vehicleType) {
+            case MOTORCYCLE:
+                return baseMsg + "Motorcycles MUST use designated motorcycle slots.\n" +
+                        availableCount + " motorcycle slot(s) available.";
+            case EV:
+                return baseMsg + "Electric vehicles can use EV charging slots or regular car slots.\n" +
+                        "EV charging slots are recommended for charging.\n" +
+                        availableCount + " compatible slot(s) available.";
+            case CAR:
+                return baseMsg + "Cars can use regular, compact, or handicapped slots.\n" +
+                        "Motorcycle and EV-only slots are NOT available.\n" +
+                        availableCount + " compatible slot(s) available.";
+            default:
+                return baseMsg + availableCount + " slot(s) available.";
+        }
     }
 
     /**
@@ -631,27 +582,67 @@ public class ParkingLotManagerGUI extends JFrame {
             VehicleType vehicleType = (VehicleType) typeCombo.getSelectedItem();
             VehicleMake vehicleMake = (VehicleMake) makeCombo.getSelectedItem();
 
-            // Find compatible slot
-            ParkingSlot assignedSlot = null;
+            // Filter compatible slots for the vehicle type
+            java.util.List<ParkingSlot> compatibleSlots = new java.util.ArrayList<>();
             for (ParkingSlot slot : availableSlots) {
                 if (slot.getSlotType().isCompatibleWith(vehicleType)) {
-                    assignedSlot = slot;
-                    break;
+                    compatibleSlots.add(slot);
                 }
             }
 
-            if (assignedSlot == null) {
+            if (compatibleSlots.isEmpty()) {
+                String message = getCompatibilityErrorMessage(vehicleType);
                 JOptionPane.showMessageDialog(this,
-                        "No compatible slots available for " + vehicleType + "!",
-                        "Error", JOptionPane.ERROR_MESSAGE);
+                        message,
+                        "No Compatible Slots", JOptionPane.ERROR_MESSAGE);
                 return;
             }
+
+            // Let user choose from available compatible slots
+            String[] slotOptions = new String[compatibleSlots.size()];
+            for (int i = 0; i < compatibleSlots.size(); i++) {
+                ParkingSlot slot = compatibleSlots.get(i);
+                slotOptions[i] = String.format("Slot #%d (%s) - %s",
+                        slot.getSlotNumber(),
+                        slot.getSlotId(),
+                        slot.getSlotType().getDisplayName());
+            }
+
+            String instructions = getSlotSelectionInstructions(vehicleType, compatibleSlots.size());
+            String selectedSlot = (String) JOptionPane.showInputDialog(this,
+                    instructions,
+                    "Select Parking Slot - " + compatibleSlots.size() + " Available",
+                    JOptionPane.QUESTION_MESSAGE,
+                    null,
+                    slotOptions,
+                    slotOptions[0]);
+
+            if (selectedSlot == null) {
+                // User cancelled slot selection
+                return;
+            }
+
+            // Find the selected slot
+            int selectedIndex = java.util.Arrays.asList(slotOptions).indexOf(selectedSlot);
+            ParkingSlot assignedSlot = compatibleSlots.get(selectedIndex);
 
             // Create session and occupy slot
             VehicleSession session = new VehicleSession(plate, vehicleType, vehicleMake,
                     currentUser != null ? currentUser.getId() : -1, assignedSlot.getSlotId());
-            activeSessions.add(session);
-            assignedSlot.setOccupied(true, vehicleType);
+
+            // Save to database
+            int sessionId = sessionDAO.insertSession(session);
+            if (sessionId > 0) {
+                session.setId(sessionId);
+                activeSessions.add(session);
+                assignedSlot.setOccupied(true, vehicleType);
+                System.out.println("[OK] Saved parking session #" + sessionId + " to database");
+            } else {
+                JOptionPane.showMessageDialog(this,
+                        "Failed to save parking session to database!",
+                        "Database Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
 
             JOptionPane.showMessageDialog(this,
                     "Vehicle parked successfully in slot #" + assignedSlot.getSlotNumber() + "!",
@@ -698,6 +689,16 @@ public class ParkingLotManagerGUI extends JFrame {
                         slot.setOccupied(false, null);
                         break;
                     }
+                }
+            }
+
+            // Complete session in database
+            if (session.getId() > 0) {
+                boolean completed = sessionDAO.completeSession(session.getId(), fee);
+                if (completed) {
+                    System.out.println("[OK] Completed parking session #" + session.getId() + " in database");
+                } else {
+                    System.err.println("[FAIL] Failed to complete session in database");
                 }
             }
 
@@ -777,11 +778,10 @@ public class ParkingLotManagerGUI extends JFrame {
         UserPreferenceDialog dialog = new UserPreferenceDialog(
                 this,
                 parkingLots,
-                existingPref
-        );
+                existingPref);
 
         dialog.setLocationRelativeTo(this);
-        dialog.setVisible(true);  // blocks until user closes dialog
+        dialog.setVisible(true); // blocks until user closes dialog
 
         // Get back whatever the dialog ended up with (null if user cancelled)
         UserPreference updatedPref = dialog.getUserPreference();
