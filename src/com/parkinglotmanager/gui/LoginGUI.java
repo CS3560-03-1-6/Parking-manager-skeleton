@@ -1,6 +1,9 @@
 package com.parkinglotmanager.gui;
 
 
+import com.parkinglotmanager.dao.UserDAO;
+import com.parkinglotmanager.model.User;
+import com.parkinglotmanager.util.DatabaseConnection;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
@@ -12,7 +15,6 @@ import java.awt.Insets;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-
 import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -24,10 +26,6 @@ import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
-
-import com.parkinglotmanager.dao.UserDAO;
-import com.parkinglotmanager.model.User;
-import com.parkinglotmanager.util.DatabaseConnection;
 
 public class LoginGUI extends JFrame {
 
@@ -183,6 +181,9 @@ public class LoginGUI extends JFrame {
         String password = new String(passwordField.getPassword());
         UserDAO userDAO = new UserDAO();
         User user = userDAO.getUserByUsername(username);
+
+        try {
+            
         
         if (username.isEmpty() || password.isEmpty()) {
             showError("Please enter both username and password.");
@@ -193,11 +194,17 @@ public class LoginGUI extends JFrame {
             showError("Account not found! Please sign up first.");
             return;
         }
+        
 
-        if (!user.authenticate(hashPassword(password))) {
+        if (!user.authenticate(password)) {
             showError("Invalid password!");
             return;
         }
+
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+
 
         // Success
         loggedInUser = user;
@@ -258,28 +265,35 @@ public class LoginGUI extends JFrame {
                  */
 
 
-            // Register and Save to DB
-            boolean success = userDAO.registerUser(username, 
-                                                    emailTxt.getText(), 
-                                                    hashPassword(password), 
-                                                    false // Default is not admin
-                                                );
+            try {
+                // Use User class to hash using PBKDF2
+                User temp = new User(username, "", "", emailTxt.getText(), password);
+                String hashed = temp.getPasswordHash();
 
-            if (success) {
-                JOptionPane.showMessageDialog(this, "Account created! You may now login.");
-            } else {
-                showError("Database error: Could not create account.");
+                boolean success = userDAO.registerUser(
+                    username,
+                    emailTxt.getText(),
+                    hashed,   // PBKDF2 hash (salt:hash)
+                    false
+                );
+
+                if (success) {
+                    JOptionPane.showMessageDialog(this, "Account created! You may now login.");
+                } else {
+                    showError("Database error: Could not create account.");
+                }
+
+                usernameField.setText(username);
+
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                showError("Password hashing failed.");
             }
-            usernameField.setText(username);
         }
     }
-
+        
     private void showError(String msg) {
         JOptionPane.showMessageDialog(this, msg, "Error", JOptionPane.ERROR_MESSAGE);
-    }
-
-    private String hashPassword(String password) {
-        return "hashed_" + password; // Demo hash
     }
 
     public static void main(String[] args) {
