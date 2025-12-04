@@ -173,7 +173,7 @@ CREATE TABLE IF NOT EXISTS Log (
 -- SAMPLE DATA 
 -- Users
 -- Only run this sql once, multiple times will error out duplicate data
-INSERT INTO User (userName, userEmail, passwordHash, privilege)
+INSERT IGNORE INTO User (userName, userEmail, passwordHash, privilege)
 VALUES
     ('admin',  'admin@cpp.edu',
      'QZCu/rLhi7QPbvOyfwg+cg==:HbdTVitGRA+aESq9vfRMWPgYg3Fmr0ITLvUW/FgEevQ=',
@@ -185,7 +185,7 @@ VALUES
 
 
 -- Lot - Cal Poly Pomona Parking Facilities (Based on actual campus parking)
-INSERT INTO Lot (lotID, lotName, capacity, status) VALUES
+INSERT IGNORE INTO Lot (lotID, lotName, capacity, status) VALUES
     (1,'Structure 1', 1250, 'Available'),      -- Multi-level structure near campus center
     (2,'Structure 2', 850, 'Available'),       -- Multi-level structure near residence halls
     (3,'Lot B', 450, 'Available'),             -- Large surface lot
@@ -205,27 +205,27 @@ INSERT INTO Lot (lotID, lotName, capacity, status) VALUES
     (17,'Lot U', 310, 'Available');            -- Large surface lot near student housing
 
 -- Vehicle
-INSERT INTO Vehicle (vehicleID, userID, plate, make, model, color)
+INSERT IGNORE INTO Vehicle (vehicleID, userID, plate, make, model, color)
 VALUES
     (1, 1, '242DJF1048', 'Porche', '911', 'Red');
 
 -- ParkingReport
-INSERT INTO ParkingReport (parkingReportID, lotID, userID, fullness, reportTime)
+INSERT IGNORE INTO ParkingReport (parkingReportID, lotID, userID, fullness, reportTime)
 VALUES
     (1, 1, 1, 80, '2025-11-20 09:32:12');
 
 -- Notification
-INSERT INTO Notification (notificationID, recipientID, message, notificationType, isRead, sentTime)
+INSERT IGNORE INTO Notification (notificationID, recipientID, message, notificationType, isRead, sentTime)
 VALUES
     (1, 1, 'Lot F is 90 percent full...', 'FullReport', 1, '2025-11-20 09:33:34');
 
 -- ModerationAction
-INSERT INTO ModerationAction (moderationActionID, modID, actionType, message, affectedReportID, affectedLotID)
+INSERT IGNORE INTO ModerationAction (moderationActionID, modID, actionType, message, affectedReportID, affectedLotID)
 VALUES
     (1, 1, 'delete', 'Wrong report', NULL, NULL);
 
 -- Log
-INSERT INTO Log (logID, logType, logTime, logMessage, userID)
+INSERT IGNORE INTO Log (logID, logType, logTime, logMessage, userID)
 VALUES
     (1, 'login', '2025-11-20 08:25:57', 'userID 1 has logged in', 1);
 

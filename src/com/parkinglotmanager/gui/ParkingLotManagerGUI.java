@@ -200,41 +200,27 @@ public class ParkingLotManagerGUI extends JFrame {
         int slotNumber = 1;
         String lotId = lot.getLotId();
 
-        // Add regular slots
-        for (int i = 0; i < regularSlots; i++) {
-            String slotId = String.format("SLOT-%03d", slotNumber);
-            lot.addSlot(new ParkingSlot(slotId, lotId, slotNumber, SlotType.CAR));
-            slotNumber++;
-        }
-
-        // Add compact slots
-        for (int i = 0; i < compactSlots; i++) {
-            String slotId = String.format("SLOT-%03d", slotNumber);
-            lot.addSlot(new ParkingSlot(slotId, lotId, slotNumber, SlotType.COMPACT));
-            slotNumber++;
-        }
-
-        // Add EV slots
-        for (int i = 0; i < evSlots; i++) {
-            String slotId = String.format("SLOT-%03d", slotNumber);
-            lot.addSlot(new ParkingSlot(slotId, lotId, slotNumber, SlotType.EV));
-            slotNumber++;
-        }
-
-        // Add handicapped slots
-        for (int i = 0; i < handicappedSlots; i++) {
-            String slotId = String.format("SLOT-%03d", slotNumber);
-            lot.addSlot(new ParkingSlot(slotId, lotId, slotNumber, SlotType.HANDICAPPED));
-            slotNumber++;
-        }
-
-        // Add motorcycle slots
-        for (int i = 0; i < motorcycleSlots; i++) {
-            String slotId = String.format("SLOT-%03d", slotNumber);
-            lot.addSlot(new ParkingSlot(slotId, lotId, slotNumber, SlotType.MOTORCYCLE));
-            slotNumber++;
-        }
+        slotNumber = addSlots(lot, lotId, slotNumber, regularSlots,     SlotType.CAR);
+        slotNumber = addSlots(lot, lotId, slotNumber, compactSlots,     SlotType.COMPACT);
+        slotNumber = addSlots(lot, lotId, slotNumber, evSlots,          SlotType.EV);
+        slotNumber = addSlots(lot, lotId, slotNumber, handicappedSlots, SlotType.HANDICAPPED);
+        slotNumber = addSlots(lot, lotId, slotNumber, motorcycleSlots,  SlotType.MOTORCYCLE);
     }
+
+
+    private int addSlots(ParkingLot lot, String lotId, int startNumber, int count, SlotType type) {
+        int slotNumber = startNumber;
+
+        for (int i = 0; i < count; i++) {
+            String slotId = lotId + "-" + String.format("SLOT-%03d", slotNumber);
+            lot.addSlot(new ParkingSlot(slotId, lotId, slotNumber, type));
+            slotNumber++;
+        }
+
+        return slotNumber;
+    }
+
+    
 
     /**
      * Sets up the main user interface
