@@ -33,6 +33,7 @@ import javax.swing.table.DefaultTableModel;
 
 import com.parkinglotmanager.dao.VehicleDAO;
 import com.parkinglotmanager.dao.VehicleSessionDAO;
+import com.parkinglotmanager.dao.ParkingDAO;
 import com.parkinglotmanager.enums.LotType;
 import com.parkinglotmanager.enums.SlotType;
 import com.parkinglotmanager.enums.VehicleMake;
@@ -54,6 +55,7 @@ public class ParkingLotManagerGUI extends JFrame {
     private List<VehicleSession> activeSessions;
     private VehicleSessionDAO sessionDAO;
     private VehicleDAO vehicleDAO;
+    private ParkingDAO parkingDAO;
     private DefaultTableModel slotTableModel;
     private DefaultTableModel sessionTableModel;
     private JLabel totalSlotsLabel;
@@ -98,6 +100,7 @@ public class ParkingLotManagerGUI extends JFrame {
         parkingLots = new ArrayList<>();
         sessionDAO = new VehicleSessionDAO();
         vehicleDAO = new VehicleDAO();
+        parkingDAO = new ParkingDAO(sessionDAO, vehicleDAO);
 
         // Load active sessions from database
         activeSessions = sessionDAO.getActiveSessions();
@@ -578,12 +581,7 @@ public class ParkingLotManagerGUI extends JFrame {
         }
 
         // Find available slots
-        List<ParkingSlot> availableSlots = new ArrayList<>();
-        for (ParkingSlot slot : currentLot.getSlots()) {
-            if (!slot.isOccupied()) {
-                availableSlots.add(slot);
-            }
-        }
+        List<ParkingSlot> availableSlots = parkingDAO.getAvailableSlots(currentLot);
 
         if (availableSlots.isEmpty()) {
             JOptionPane.showMessageDialog(this, "No available slots in this lot!",
@@ -607,24 +605,22 @@ public class ParkingLotManagerGUI extends JFrame {
         int result = JOptionPane.showConfirmDialog(this, inputPanel,
                 "Park Vehicle", JOptionPane.OK_CANCEL_OPTION);
 
-        if (result == JOptionPane.OK_OPTION) {
-            String plate = plateField.getText().trim();
-            if (plate.isEmpty()) {
-                JOptionPane.showMessageDialog(this, "License plate cannot be empty!",
-                        "Error", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
+        if (result != JOptionPane.OK_OPTION) {
+            return;
+        }
+
+        String plate = plateField.getText().trim();
+        if (plate.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "License plate cannot be empty!",
+                    "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
 
             VehicleType vehicleType = (VehicleType) typeCombo.getSelectedItem();
             VehicleMake vehicleMake = (VehicleMake) makeCombo.getSelectedItem();
 
             // Filter compatible slots for the vehicle type
-            java.util.List<ParkingSlot> compatibleSlots = new java.util.ArrayList<>();
-            for (ParkingSlot slot : availableSlots) {
-                if (slot.getSlotType().isCompatibleWith(vehicleType)) {
-                    compatibleSlots.add(slot);
-                }
-            }
+            List<ParkingSlot> compatibleSlots = parkingDAO.getCompatibleAvailableSlots(currentLot, vehicleType);
 
             if (compatibleSlots.isEmpty()) {
                 String message = getCompatibilityErrorMessage(vehicleType);
@@ -662,23 +658,25 @@ public class ParkingLotManagerGUI extends JFrame {
             int selectedIndex = java.util.Arrays.asList(slotOptions).indexOf(selectedSlot);
             ParkingSlot assignedSlot = compatibleSlots.get(selectedIndex);
 
-            // Create session and occupy slot
-            VehicleSession session = new VehicleSession(plate, vehicleType, vehicleMake,
-                    currentUser != null ? currentUser.getId() : -1, assignedSlot.getSlotId());
+            int userId = currentUser != null ? currentUser.getId() : -1;
+            VehicleSession session = parkingDAO.parkVehicle(
+                    currentLot,
+                    assignedSlot,
+                    plate,
+                    vehicleType,
+                    vehicleMake,
+                    userId
+            );
 
-            // Save to database
-            int sessionId = sessionDAO.insertSession(session);
-            if (sessionId > 0) {
-                session.setId(sessionId);
-                activeSessions.add(session);
-                assignedSlot.setOccupied(true, vehicleType);
-                System.out.println("[OK] Saved parking session #" + sessionId + " to database");
-            } else {
+            if (session == null) {
                 JOptionPane.showMessageDialog(this,
                         "Failed to save parking session to database!",
                         "Database Error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
+
+            // Add to in-memory list of active sessions
+            activeSessions.add(session);
 
             JOptionPane.showMessageDialog(this,
                     "Vehicle parked successfully in slot #" + assignedSlot.getSlotNumber() + "!",
@@ -686,7 +684,7 @@ public class ParkingLotManagerGUI extends JFrame {
 
             refreshData();
         }
-    }
+    
 
     /**
      * Exit a vehicle from a slot
