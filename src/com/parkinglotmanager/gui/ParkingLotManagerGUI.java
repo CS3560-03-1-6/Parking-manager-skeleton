@@ -29,6 +29,8 @@ import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 import javax.swing.UIManager;
+import javax.swing.border.Border;
+import javax.swing.border.TitledBorder;
 import javax.swing.table.DefaultTableModel;
 
 import com.parkinglotmanager.dao.VehicleDAO;
@@ -53,6 +55,18 @@ import com.parkinglotmanager.model.VehicleSession;
  * Provides a user interface for managing parking lots, slots, and sessions.
  */
 public class ParkingLotManagerGUI extends JFrame {
+
+    //colors and stuff from strawb's UI
+    private static final Color HEADER_BLUE = new Color(167, 199, 231);
+    private static final Color TEXT_COLOR = new Color(106, 123, 162);
+    private static final Color FIELD_BORDER = new Color(180, 180, 180);
+
+    private static final Font FONT_TITLE = new Font("Segoe UI", Font.BOLD, 28);
+    private static final Font FONT_LABEL = new Font("Segoe UI", Font.PLAIN, 15);
+    private static final Font FONT_BUTTON = new Font("Segoe UI", Font.BOLD, 15);
+    private static final Font FONT_FIELD = new Font("Segoe UI", Font.PLAIN, 14);
+
+
     private List<ParkingLot> parkingLots;
     private List<VehicleSession> activeSessions;
     private VehicleSessionDAO sessionDAO;
@@ -237,6 +251,7 @@ public class ParkingLotManagerGUI extends JFrame {
         setSize(1200, 800);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout(10, 10));
+        getContentPane().setBackground(Color.WHITE);
 
         // Set Java icon for the application window
         try {
@@ -261,22 +276,28 @@ public class ParkingLotManagerGUI extends JFrame {
      * Creates the header panel with lot selector and stats
      */
     private JPanel createHeaderPanel() {
-        JPanel panel = new JPanel(new BorderLayout(10, 10));
-        panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        JPanel headerPanel = new JPanel(new BorderLayout(10, 10));
+        headerPanel.setBackground(HEADER_BLUE);
+        headerPanel.setPreferredSize(new Dimension(getWidth(), 100));
 
         // Title
-        JLabel titleLabel = new JLabel("Parking Lot Manager System", SwingConstants.CENTER);
-        titleLabel.setFont(new Font("Arial", Font.BOLD, 24));
-        titleLabel.setForeground(Color.BLACK);
-        panel.add(titleLabel, BorderLayout.NORTH);
+        JLabel title = new JLabel("Parking Lot Manager System", SwingConstants.CENTER);
+        title.setFont(FONT_TITLE);
+        title.setForeground(TEXT_COLOR);
+        title.setBorder(BorderFactory.createEmptyBorder(25, 0, 10, 0));
+
+        headerPanel.add(title, BorderLayout.NORTH);
 
         // Lot selector and stats
         JPanel controlPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        controlPanel.setBackground(HEADER_BLUE);
         JLabel selectLotLabel = new JLabel("Select Lot:");
-        selectLotLabel.setForeground(Color.BLACK);
+        selectLotLabel.setFont(FONT_LABEL);
+        selectLotLabel.setForeground(TEXT_COLOR);
         controlPanel.add(selectLotLabel);
 
         lotSelector = new JComboBox<>();
+        lotSelector.setFont(FONT_FIELD);
         for (ParkingLot lot : parkingLots) {
             lotSelector.addItem(lot.getName() + " (" + lot.getLotId() + ")");
         }
@@ -288,11 +309,11 @@ public class ParkingLotManagerGUI extends JFrame {
         availableSlotsLabel = new JLabel("Available: 0");
         occupiedSlotsLabel = new JLabel("Occupied: 0");
 
-        totalSlotsLabel.setFont(new Font("Arial", Font.BOLD, 14));
-        totalSlotsLabel.setForeground(Color.BLACK);
-        availableSlotsLabel.setFont(new Font("Arial", Font.BOLD, 14));
+        totalSlotsLabel.setFont(FONT_LABEL);
+        totalSlotsLabel.setForeground(TEXT_COLOR);
+        availableSlotsLabel.setFont(FONT_LABEL);
         availableSlotsLabel.setForeground(new Color(0, 150, 0));
-        occupiedSlotsLabel.setFont(new Font("Arial", Font.BOLD, 14));
+        occupiedSlotsLabel.setFont(FONT_LABEL);
         occupiedSlotsLabel.setForeground(new Color(200, 0, 0));
 
         controlPanel.add(Box.createHorizontalStrut(30));
@@ -302,10 +323,12 @@ public class ParkingLotManagerGUI extends JFrame {
         controlPanel.add(Box.createHorizontalStrut(20));
         controlPanel.add(occupiedSlotsLabel);
 
-        panel.add(controlPanel, BorderLayout.CENTER);
+        headerPanel.add(controlPanel, BorderLayout.CENTER);
 
         // User info and database status
         JPanel infoPanel = new JPanel(new BorderLayout());
+        infoPanel.setBackground(HEADER_BLUE);
+
         JLabel userLabel;
         if (currentUser != null) {
             userLabel = new JLabel("Logged in as: " + currentUser.getUsername() +
@@ -313,8 +336,9 @@ public class ParkingLotManagerGUI extends JFrame {
         } else {
             userLabel = new JLabel("Logged in as: (no user)");
         }
+        userLabel.setFont(new Font("Segoe UI", Font.ITALIC, 11));
         userLabel.setHorizontalAlignment(SwingConstants.RIGHT);
-        userLabel.setForeground(Color.BLACK);
+        userLabel.setForeground(TEXT_COLOR);
 
         // Database connection status
         JLabel dbStatusLabel = new JLabel();
@@ -326,13 +350,16 @@ public class ParkingLotManagerGUI extends JFrame {
             dbStatusLabel.setText("[X] MySQL Disconnected");
             dbStatusLabel.setForeground(Color.RED);
         }
+        dbStatusLabel.setFont(new Font("Segoe UI", Font.ITALIC, 11));
         dbStatusLabel.setHorizontalAlignment(SwingConstants.LEFT);
 
         infoPanel.add(dbStatusLabel, BorderLayout.WEST);
         infoPanel.add(userLabel, BorderLayout.EAST);
-        panel.add(infoPanel, BorderLayout.SOUTH);
+        infoPanel.setBorder(BorderFactory.createEmptyBorder(5, 10, 15, 10));
 
-        return panel;
+        headerPanel.add(infoPanel, BorderLayout.SOUTH);
+
+        return headerPanel;
     }
 
     /**
@@ -340,6 +367,7 @@ public class ParkingLotManagerGUI extends JFrame {
      */
     private JPanel createMainPanel() {
         JPanel panel = new JPanel(new GridLayout(1, 2, 10, 10));
+        panel.setBackground(Color.WHITE);
         panel.setBorder(BorderFactory.createEmptyBorder(0, 10, 10, 10));
 
         // Slots panel
@@ -356,7 +384,12 @@ public class ParkingLotManagerGUI extends JFrame {
      */
     private JPanel createSlotsPanel() {
         JPanel panel = new JPanel(new BorderLayout());
-        panel.setBorder(BorderFactory.createTitledBorder("Parking Slots"));
+        panel.setBackground(Color.WHITE);
+
+        //createTitledBorder can take (Border, String title, int just, int pos, Font, Color)
+        //shoutout to whatever extension let me see options for params lol
+        panel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(FIELD_BORDER, 1),
+            "Parking Slots",TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, FONT_LABEL, TEXT_COLOR));
 
         // Table
         String[] columnNames = { "Slot #", "Type", "Status", "Vehicle" };
@@ -367,6 +400,8 @@ public class ParkingLotManagerGUI extends JFrame {
         };
 
         JTable table = new JTable(slotTableModel);
+        table.setFont(FONT_FIELD);
+        table.getTableHeader().setFont(FONT_LABEL);
         table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         JScrollPane scrollPane = new JScrollPane(table);
         panel.add(scrollPane, BorderLayout.CENTER);
@@ -379,7 +414,11 @@ public class ParkingLotManagerGUI extends JFrame {
      */
     private JPanel createSessionsPanel() {
         JPanel panel = new JPanel(new BorderLayout());
-        panel.setBorder(BorderFactory.createTitledBorder("Active Parking Sessions"));
+        panel.setBackground(Color.WHITE);
+
+        //second verse, same as the first
+        panel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(FIELD_BORDER, 1),
+            "Active Parking Sessions",TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, FONT_LABEL, TEXT_COLOR));
 
         // Table
         String[] columnNames = { "Session ID", "License Plate", "Vehicle Type", "Slot", "Duration" };
@@ -390,6 +429,8 @@ public class ParkingLotManagerGUI extends JFrame {
         };
 
         JTable table = new JTable(sessionTableModel);
+        table.setFont(FONT_FIELD);
+        table.getTableHeader().setFont(FONT_LABEL);
         table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         JScrollPane scrollPane = new JScrollPane(table);
         panel.add(scrollPane, BorderLayout.CENTER);
@@ -447,70 +488,109 @@ public class ParkingLotManagerGUI extends JFrame {
         }
     }
 
+    private JButton newUIButton(String text, int colorOption) {
+        JButton btn = new JButton(text);
+        btn.setFont(FONT_BUTTON);
+        btn.setFocusPainted(false);
+
+        Color buttonColor;
+        Color hoverColor;
+        Color textColor;
+        
+        switch (colorOption) {
+            case 1: // Green
+                buttonColor = new Color(39, 174, 96);
+                hoverColor = new Color(46, 204, 113);
+                textColor = Color.WHITE;
+                break;
+            case 2: // Red
+                buttonColor = new Color(192, 57, 43);
+                hoverColor = new Color(231, 76, 60);
+                textColor = Color.WHITE;
+                break;
+            case 3: // Orange
+                buttonColor = new Color(230, 126, 34);
+                hoverColor = new Color(243, 156, 18);
+                textColor = Color.WHITE;
+                break;
+            case 4: // Purple
+                buttonColor = new Color(155, 89, 182);
+                hoverColor = new Color(142, 68, 173);
+                textColor = Color.WHITE;
+                break;
+            case 0: // Default Blue
+            default:
+                buttonColor = Color.WHITE;
+                hoverColor = new Color(225, 235, 245);
+                textColor = TEXT_COLOR;
+                break;
+        }
+        
+        btn.setForeground(textColor);
+        btn.setBackground(buttonColor);
+        btn.setOpaque(true);
+
+        if (colorOption == 0) { //only default buttons have border
+            btn.setBorder(BorderFactory.createCompoundBorder(
+                    BorderFactory.createLineBorder(HEADER_BLUE, 2),
+                    BorderFactory.createEmptyBorder(10, 25, 10, 25)
+            ));
+        } else {
+            btn.setBorderPainted(false);
+            btn.setBorder(BorderFactory.createEmptyBorder(10, 25, 10, 25));
+        }
+
+
+        
+        btn.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                btn.setBackground(hoverColor);
+            }
+
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                btn.setBackground(buttonColor);
+            }
+        });
+
+        return btn;
+    }
+
     /**
      * Creates the actions panel with buttons
      */
     private JPanel createActionsPanel() {
+        JPanel outerPanel = new JPanel(new BorderLayout());
+        outerPanel.setBackground(Color.WHITE);
+
         JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
+        panel.setBackground(Color.WHITE);
         panel.setBorder(BorderFactory.createEmptyBorder(0, 10, 10, 10));
 
-        JButton parkButton = new JButton("Park Vehicle");
-        parkButton.setOpaque(true);
-        parkButton.setBorderPainted(true);
-        parkButton.setFont(new Font("Arial", Font.PLAIN, 12));
+        JButton parkButton = newUIButton("Park Vehicle", 0);
         parkButton.addActionListener(e -> parkVehicle());
 
-        JButton exitButton = new JButton("Exit Vehicle");
-        exitButton.setOpaque(true);
-        exitButton.setBorderPainted(true);
-        exitButton.setFont(new Font("Arial", Font.PLAIN, 12));
+        JButton exitButton = newUIButton("Exit Vehicle", 0);
         exitButton.addActionListener(e -> exitVehicle());
 
-        JButton reportButton = new JButton("Submit Availability Report");
-        reportButton.setOpaque(true);
-        reportButton.setBorderPainted(true);
-        reportButton.setFont(new Font("Arial", Font.PLAIN, 12));
+        JButton reportButton = newUIButton("Submit Availability Report", 0);
         reportButton.addActionListener(e -> submitReport());
 
-        JButton refreshButton = new JButton("Refresh");
-        refreshButton.setOpaque(true);
-        refreshButton.setBorderPainted(true);
-        refreshButton.setFont(new Font("Arial", Font.PLAIN, 12));
+        JButton refreshButton = newUIButton("Refresh", 0);
         refreshButton.addActionListener(e -> refreshData());
 
-        JButton preferencesButton = new JButton("Preferences");
-        preferencesButton.setOpaque(true);
-        preferencesButton.setBorderPainted(true);
-        preferencesButton.setFont(new Font("Arial", Font.PLAIN, 12));
+        JButton preferencesButton = newUIButton("Preferences", 0);
         preferencesButton.addActionListener(e -> openUserPreferences());
 
         // Admin-only buttons
-        JButton manageSlotsButton = new JButton("Manage Slots");
+        JButton manageSlotsButton = newUIButton("Manage Slots", 3);
         manageSlotsButton.addActionListener(e -> manageSlots());
-        manageSlotsButton.setBackground(new Color(230, 126, 34));
-        manageSlotsButton.setForeground(Color.WHITE);
-        manageSlotsButton.setOpaque(true);
-        manageSlotsButton.setBorderPainted(false);
-        manageSlotsButton.setFont(new Font("Arial", Font.BOLD, 12));
-        manageSlotsButton.setFocusPainted(false);
 
-        JButton viewReportsButton = new JButton("View Reports");
+        JButton viewReportsButton = newUIButton("View Reports", 4);
         viewReportsButton.addActionListener(e -> viewAllReports());
-        viewReportsButton.setBackground(new Color(155, 89, 182));
-        viewReportsButton.setForeground(Color.WHITE);
-        viewReportsButton.setOpaque(true);
-        viewReportsButton.setBorderPainted(false);
-        viewReportsButton.setFont(new Font("Arial", Font.BOLD, 12));
-        viewReportsButton.setFocusPainted(false);
 
-        JButton logoutButton = new JButton("Logout");
+        JButton logoutButton = newUIButton("Logout", 2);
         logoutButton.addActionListener(e -> logout());
-        logoutButton.setBackground(new Color(231, 76, 60));
-        logoutButton.setForeground(Color.WHITE);
-        logoutButton.setOpaque(true);
-        logoutButton.setBorderPainted(false);
-        logoutButton.setFont(new Font("Arial", Font.BOLD, 12));
-        logoutButton.setFocusPainted(false);
+
 
         panel.add(parkButton);
         panel.add(exitButton);
@@ -518,23 +598,11 @@ public class ParkingLotManagerGUI extends JFrame {
 
         // Only show admin buttons for admin users
         if (isAdmin) {
-            JButton visualizeButton = new JButton("Visual Simulation");
-            visualizeButton.setOpaque(true);
-            visualizeButton.setBorderPainted(true);
-            visualizeButton.setFont(new Font("Arial", Font.PLAIN, 12));
-            visualizeButton.setBackground(new Color(39, 174, 96));
-            visualizeButton.setForeground(Color.green);
-            visualizeButton.setFocusPainted(false);
+            JButton visualizeButton = newUIButton("Visual Simulation", 1);
             visualizeButton.addActionListener(e -> openVisualization());
 
-            JButton exitAllButton = new JButton("Exit All Vehicles");
+            JButton exitAllButton = newUIButton("Exit All Vehicles", 2);
             exitAllButton.addActionListener(e -> exitAllVehicles());
-            exitAllButton.setBackground(new Color(192, 57, 43));
-            exitAllButton.setForeground(Color.WHITE);
-            exitAllButton.setOpaque(true);
-            exitAllButton.setBorderPainted(false);
-            exitAllButton.setFont(new Font("Arial", Font.BOLD, 12));
-            exitAllButton.setFocusPainted(false);
 
             panel.add(visualizeButton);
             panel.add(exitAllButton);
@@ -546,7 +614,14 @@ public class ParkingLotManagerGUI extends JFrame {
         panel.add(preferencesButton);
         panel.add(logoutButton);
 
-        return panel;
+        JScrollPane scrollPane = new JScrollPane(panel);
+        scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_NEVER);
+        scrollPane.setBorder(null);
+        scrollPane.setPreferredSize(new Dimension(getWidth(), 80));
+
+        outerPanel.add(scrollPane, BorderLayout.CENTER);
+        return outerPanel;
     }
 
     /**
