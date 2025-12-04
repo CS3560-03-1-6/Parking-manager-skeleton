@@ -2,22 +2,6 @@
 
 A comprehensive parking management system built with Java Swing and MySQL database. Manages 17 parking lots across campus with user authentication, real-time availability tracking, and reporting features.
 
-## Quick Start for Teammates
-
-**First time setup? Run this:**
-
-```powershell
-.\verify-setup.bat
-```
-
-This will check if you have everything needed. Then follow the instructions in `SETUP_GUIDE.md`.
-
-## Prerequisites
-
-- ✅ **Java JDK 8+** (verify with `java -version`)
-- ✅ **MySQL 5.7+** (verify with `mysql --version`)
-- ✅ **MySQL Connector JAR** (must be in project root: `mysql-connector-j-9.4.0.jar`)
-
 ## Quick Run
 
 1. **Edit `config.properties`** - Update with YOUR MySQL password
@@ -38,12 +22,12 @@ This will check if you have everything needed. Then follow the instructions in `
 
 ## Features
 
-- 🚗 17 Cal Poly Pomona parking lots (6,320+ total spaces)
-- 🔐 Secure user authentication (PBKDF2 password hashing)
-- 📊 Real-time parking availability
-- 👥 User management (Admin and Client roles)
-- 💾 MySQL database with full CRUD operations
-- 🎨 Java Swing GUI
+- 17 Cal Poly Pomona parking lots (6,320+ total spaces)
+- Secure user authentication (PBKDF2 password hashing)
+- Real-time parking availability
+- User management (Admin and Client roles)
+- MySQL database with full CRUD operations
+- Java Swing GUI
 
 ## Parking Lots
 
@@ -56,40 +40,6 @@ This will check if you have everything needed. Then follow the instructions in `
 | + 13 more lots | -           | ~4,350   | Various locations        |
 
 **Total Campus Parking:** 6,320 spaces
-
----
-
-## Detailed Setup (For New Team Members)
-
-See **`SETUP_GUIDE.md`** for complete instructions including:
-
-- Troubleshooting common issues
-- System requirements
-- File structure explanation
-- Development setup
-
----
-
-## Project Structure
-
-```
-Parking-manager-skeleton/
-├── config.properties           # Database credentials (EDIT THIS!)
-├── mysql-connector-j-9.4.0.jar # MySQL driver (REQUIRED!)
-├── run-gui.bat                 # Launch application
-├── run-source.bat              # Development mode
-├── verify-setup.bat            # Check environment
-├── SETUP_GUIDE.md              # Detailed setup instructions
-├── database/
-│   └── database_setup_v2.sql   # Database schema
-└── src/com/parkinglotmanager/
-    ├── dao/                    # Database access
-    ├── gui/                    # User interface
-    ├── model/                  # Data models
-    └── util/                   # Utilities
-```
-
----
 
 ## How to Run the Application
 

@@ -21,6 +21,7 @@ import java.util.Random;
  */
 public class ParkingVisualization extends JFrame {
     private ParkingLot currentLot;
+    private List<ParkingLot> parkingLots;
     private VehicleSessionDAO sessionDAO;
     private VehicleDAO vehicleDAO;
     private VisualizationPanel visualPanel;
@@ -31,14 +32,18 @@ public class ParkingVisualization extends JFrame {
     private Random random;
     private int simulationUserId;
     private JButton simulationButton;
+    private boolean isAdmin;
+    private JComboBox<String> lotSelector;
 
-    public ParkingVisualization(ParkingLot lot) {
+    public ParkingVisualization(ParkingLot lot, boolean isAdmin, List<ParkingLot> allLots) {
         this.currentLot = lot;
+        this.parkingLots = allLots;
         this.sessionDAO = new VehicleSessionDAO();
         this.vehicleDAO = new VehicleDAO();
         this.simulationRunning = false;
         this.random = new Random();
         this.simulationUserId = 1; // Default test user ID
+        this.isAdmin = isAdmin;
 
         setupUI();
         startAutoRefresh();
@@ -59,12 +64,38 @@ public class ParkingVisualization extends JFrame {
         titleLabel.setFont(new Font("Arial", Font.BOLD, 20));
         titleLabel.setForeground(Color.WHITE);
 
+        // Lot selector panel
+        JPanel lotSelectorPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        lotSelectorPanel.setBackground(new Color(41, 128, 185));
+        JLabel lotLabel = new JLabel("Parking Lot: ");
+        lotLabel.setForeground(Color.WHITE);
+        lotLabel.setFont(new Font("Arial", Font.BOLD, 12));
+
+        lotSelector = new JComboBox<>();
+        for (ParkingLot lot : parkingLots) {
+            lotSelector.addItem(lot.getName() + " (" + lot.getLotId() + ")");
+        }
+        // Set current lot as selected
+        int currentIndex = parkingLots.indexOf(currentLot);
+        if (currentIndex >= 0) {
+            lotSelector.setSelectedIndex(currentIndex);
+        }
+        lotSelector.addActionListener(e -> changeParkingLot());
+
+        lotSelectorPanel.add(lotLabel);
+        lotSelectorPanel.add(lotSelector);
+
         statusLabel = new JLabel("Loading...");
         statusLabel.setForeground(Color.WHITE);
         statusLabel.setFont(new Font("Arial", Font.PLAIN, 12));
 
-        headerPanel.add(titleLabel, BorderLayout.WEST);
-        headerPanel.add(statusLabel, BorderLayout.EAST);
+        JPanel topPanel = new JPanel(new BorderLayout());
+        topPanel.setBackground(new Color(41, 128, 185));
+        topPanel.add(titleLabel, BorderLayout.WEST);
+        topPanel.add(lotSelectorPanel, BorderLayout.CENTER);
+        topPanel.add(statusLabel, BorderLayout.EAST);
+
+        headerPanel.add(topPanel, BorderLayout.CENTER);
 
         // Visualization panel
         visualPanel = new VisualizationPanel();
@@ -88,24 +119,46 @@ public class ParkingVisualization extends JFrame {
         setLocationRelativeTo(null);
     }
 
+    private void changeParkingLot() {
+        int selectedIndex = lotSelector.getSelectedIndex();
+        if (selectedIndex >= 0 && selectedIndex < parkingLots.size()) {
+            // Stop simulation if running
+            if (simulationRunning) {
+                stopSimulation();
+            }
+
+            currentLot = parkingLots.get(selectedIndex);
+            setTitle("Parking Lot Visualization - " + currentLot.getLotName());
+            updateVisualization();
+        }
+    }
+
     private JPanel createControlPanel() {
         JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 10));
         panel.setBackground(new Color(236, 240, 241));
         panel.setBorder(BorderFactory.createTitledBorder("Simulation Controls"));
 
-        simulationButton = new JButton("Start Simulation");
-        simulationButton.setFont(new Font("Arial", Font.BOLD, 14));
-        simulationButton.setBackground(new Color(39, 174, 96));
-        simulationButton.setForeground(Color.green);
-        simulationButton.setFocusPainted(false);
-        simulationButton.addActionListener(e -> toggleSimulation());
+        // Only show simulation controls for admin users
+        if (isAdmin) {
+            simulationButton = new JButton("Start Simulation");
+            simulationButton.setFont(new Font("Arial", Font.BOLD, 14));
+            simulationButton.setBackground(new Color(39, 174, 96));
+            simulationButton.setForeground(Color.green);
+            simulationButton.setFocusPainted(false);
+            simulationButton.addActionListener(e -> toggleSimulation());
 
-        JLabel infoLabel = new JLabel("Click to start automatic test parking activity");
-        infoLabel.setFont(new Font("Arial", Font.ITALIC, 12));
-        infoLabel.setForeground(Color.GRAY);
+            JLabel infoLabel = new JLabel("Click to start automatic test parking activity");
+            infoLabel.setFont(new Font("Arial", Font.ITALIC, 12));
+            infoLabel.setForeground(Color.GRAY);
 
-        panel.add(simulationButton);
-        panel.add(infoLabel);
+            panel.add(simulationButton);
+            panel.add(infoLabel);
+        } else {
+            JLabel infoLabel = new JLabel("Real-time visualization (Admin-only simulation)");
+            infoLabel.setFont(new Font("Arial", Font.ITALIC, 12));
+            infoLabel.setForeground(Color.GRAY);
+            panel.add(infoLabel);
+        }
 
         return panel;
     }
@@ -194,7 +247,7 @@ public class ParkingVisualization extends JFrame {
         simulationButton.setBackground(new Color(231, 76, 60));
 
         // Run simulation events every 5ms with batch processing (100x faster)
-        simulationTimer = new Timer(5, e -> {
+        simulationTimer = new Timer(10, e -> {
             // Process 5-10 events per tick for maximum speed
             int batchSize = 5 + random.nextInt(6);
             for (int i = 0; i < batchSize; i++) {

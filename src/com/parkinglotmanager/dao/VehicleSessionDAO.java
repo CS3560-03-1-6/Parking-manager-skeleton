@@ -189,4 +189,77 @@ public class VehicleSessionDAO {
             return false;
         }
     }
+
+    /**
+     * Get total revenue for today from completed sessions
+     */
+    public double getTodayRevenue() {
+        String sql = "SELECT COALESCE(SUM(fee), 0) as totalRevenue FROM VehicleSession " +
+                "WHERE exitTime IS NOT NULL " +
+                "AND DATE(exitTime) = CURDATE() " +
+                "AND paymentStatus = 'PAID'";
+
+        try (Connection conn = DatabaseConnection.getConnection();
+                PreparedStatement stmt = conn.prepareStatement(sql);
+                ResultSet rs = stmt.executeQuery()) {
+
+            if (rs.next()) {
+                return rs.getDouble("totalRevenue");
+            }
+        } catch (SQLException e) {
+            System.err.println("Error getting today's revenue: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return 0.0;
+    }
+
+    /**
+     * Get count of completed sessions for today
+     */
+    public int getTodayCompletedCount() {
+        String sql = "SELECT COUNT(*) as count FROM VehicleSession " +
+                "WHERE exitTime IS NOT NULL " +
+                "AND DATE(exitTime) = CURDATE()";
+
+        try (Connection conn = DatabaseConnection.getConnection();
+                PreparedStatement stmt = conn.prepareStatement(sql);
+                ResultSet rs = stmt.executeQuery()) {
+
+            if (rs.next()) {
+                return rs.getInt("count");
+            }
+        } catch (SQLException e) {
+            System.err.println("Error getting today's completed count: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    /**
+     * Get total revenue by parking lot for today
+     */
+    public double getLotRevenueToday(String lotId) {
+        String sql = "SELECT COALESCE(SUM(vs.fee), 0) as revenue " +
+                "FROM VehicleSession vs " +
+                "JOIN ParkingSlot ps ON vs.slotID = ps.slotID " +
+                "WHERE vs.exitTime IS NOT NULL " +
+                "AND DATE(vs.exitTime) = CURDATE() " +
+                "AND vs.paymentStatus = 'PAID' " +
+                "AND ps.lotID = ?";
+
+        try (Connection conn = DatabaseConnection.getConnection();
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, lotId);
+            ResultSet rs = stmt.executeQuery();
+
+            if (rs.next()) {
+                return rs.getDouble("revenue");
+            }
+        } catch (SQLException e) {
+            System.err.println("Error getting lot revenue: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return 0.0;
+    }
 }

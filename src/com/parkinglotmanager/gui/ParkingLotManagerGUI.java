@@ -31,7 +31,6 @@ import javax.swing.Timer;
 import javax.swing.UIManager;
 import javax.swing.table.DefaultTableModel;
 
-import com.parkinglotmanager.dao.UserPreferenceDAO;
 import com.parkinglotmanager.dao.VehicleDAO;
 import com.parkinglotmanager.dao.VehicleSessionDAO;
 import com.parkinglotmanager.enums.LotType;
@@ -45,7 +44,6 @@ import com.parkinglotmanager.model.ParkingSlot;
 import com.parkinglotmanager.model.User;
 import com.parkinglotmanager.model.UserReport;
 import com.parkinglotmanager.model.VehicleSession;
-import com.parkinglotmanager.model.UserPreference;
 
 /**
  * Main GUI application for the Parking Lot Management System.
@@ -329,10 +327,10 @@ public class ParkingLotManagerGUI extends JFrame {
         JLabel dbStatusLabel = new JLabel();
         try {
             com.parkinglotmanager.util.DatabaseConnection.testConnection();
-            dbStatusLabel.setText("🟢 MySQL Connected");
+            dbStatusLabel.setText("[OK] MySQL Connected");
             dbStatusLabel.setForeground(new Color(0, 150, 0));
         } catch (Exception e) {
-            dbStatusLabel.setText("🔴 MySQL Disconnected");
+            dbStatusLabel.setText("[X] MySQL Disconnected");
             dbStatusLabel.setForeground(Color.RED);
         }
         dbStatusLabel.setHorizontalAlignment(SwingConstants.LEFT);
@@ -487,21 +485,6 @@ public class ParkingLotManagerGUI extends JFrame {
         refreshButton.setFont(new Font("Arial", Font.PLAIN, 12));
         refreshButton.addActionListener(e -> refreshData());
 
-        JButton visualizeButton = new JButton("Visual Simulation");
-        visualizeButton.setOpaque(true);
-        visualizeButton.setBorderPainted(true);
-        visualizeButton.setFont(new Font("Arial", Font.PLAIN, 12));
-        visualizeButton.setBackground(new Color(39, 174, 96));
-        visualizeButton.setForeground(Color.green);
-        visualizeButton.setFocusPainted(false);
-        visualizeButton.addActionListener(e -> openVisualization());
-
-        JButton preferencesButton = new JButton("User Preferences");
-        preferencesButton.setOpaque(true);
-        preferencesButton.setBorderPainted(true);
-        preferencesButton.setFont(new Font("Arial", Font.PLAIN, 12));
-        preferencesButton.addActionListener(e -> openUserPreferences());
-
         // Admin-only buttons
         JButton manageSlotsButton = new JButton("Manage Slots");
         manageSlotsButton.addActionListener(e -> manageSlots());
@@ -533,14 +516,32 @@ public class ParkingLotManagerGUI extends JFrame {
         panel.add(parkButton);
         panel.add(exitButton);
         panel.add(reportButton);
-        panel.add(visualizeButton);
 
         // Only show admin buttons for admin users
         if (isAdmin) {
+            JButton visualizeButton = new JButton("Visual Simulation");
+            visualizeButton.setOpaque(true);
+            visualizeButton.setBorderPainted(true);
+            visualizeButton.setFont(new Font("Arial", Font.PLAIN, 12));
+            visualizeButton.setBackground(new Color(39, 174, 96));
+            visualizeButton.setForeground(Color.green);
+            visualizeButton.setFocusPainted(false);
+            visualizeButton.addActionListener(e -> openVisualization());
+
+            JButton exitAllButton = new JButton("Exit All Vehicles");
+            exitAllButton.addActionListener(e -> exitAllVehicles());
+            exitAllButton.setBackground(new Color(192, 57, 43));
+            exitAllButton.setForeground(Color.WHITE);
+            exitAllButton.setOpaque(true);
+            exitAllButton.setBorderPainted(false);
+            exitAllButton.setFont(new Font("Arial", Font.BOLD, 12));
+            exitAllButton.setFocusPainted(false);
+
+            panel.add(visualizeButton);
+            panel.add(exitAllButton);
             panel.add(manageSlotsButton);
             panel.add(viewReportsButton);
         }
-        panel.add(preferencesButton);
         panel.add(refreshButton);
         panel.add(logoutButton);
 
@@ -560,7 +561,7 @@ public class ParkingLotManagerGUI extends JFrame {
             return;
         }
 
-        ParkingVisualization visualization = new ParkingVisualization(currentLot);
+        ParkingVisualization visualization = new ParkingVisualization(currentLot, isAdmin, parkingLots);
         visualization.setVisible(true);
     }
 
@@ -571,6 +572,24 @@ public class ParkingLotManagerGUI extends JFrame {
         ParkingLot currentLot = getCurrentLot();
         if (currentLot == null)
             return;
+
+        // For clients, check if they already have an active parking session
+        if (!isAdmin) {
+            int userSessionCount = 0;
+            for (VehicleSession session : activeSessions) {
+                if (session.getUserId() == currentUser.getId()) {
+                    userSessionCount++;
+                }
+            }
+            if (userSessionCount >= 1) {
+                JOptionPane.showMessageDialog(this,
+                        "You already have an active parking session!\n" +
+                                "Please exit your current vehicle before parking another.",
+                        "Parking Limit Reached",
+                        JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+        }
 
         // Find available slots
         List<ParkingSlot> availableSlots = new ArrayList<>();
@@ -693,12 +712,35 @@ public class ParkingLotManagerGUI extends JFrame {
             return;
         }
 
-        // Show list of active sessions
-        String[] sessionList = new String[activeSessions.size()];
-        for (int i = 0; i < activeSessions.size(); i++) {
-            VehicleSession session = activeSessions.get(i);
+        // Filter sessions based on user role
+        List<VehicleSession> availableSessions = new ArrayList<>();
+        if (isAdmin) {
+            // Admins can exit any vehicle
+            availableSessions.addAll(activeSessions);
+        } else {
+            // Clients can only exit their own vehicles
+            for (VehicleSession session : activeSessions) {
+                if (session.getUserId() == currentUser.getId()) {
+                    availableSessions.add(session);
+                }
+            }
+        }
+
+        if (availableSessions.isEmpty()) {
+            JOptionPane.showMessageDialog(this,
+                    "You have no active parking sessions to exit!",
+                    "No Sessions Found",
+                    JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        // Show list of available sessions
+        String[] sessionList = new String[availableSessions.size()];
+        for (int i = 0; i < availableSessions.size(); i++) {
+            VehicleSession session = availableSessions.get(i);
+            String userInfo = isAdmin ? " (User ID: " + session.getUserId() + ")" : "";
             sessionList[i] = session.getLicensePlate() + " - Slot " + session.getSlotId() +
-                    " - " + session.getParkedHours() + " hours";
+                    " - " + session.getParkedHours() + " hours" + userInfo;
         }
 
         String selected = (String) JOptionPane.showInputDialog(this,
@@ -707,7 +749,7 @@ public class ParkingLotManagerGUI extends JFrame {
 
         if (selected != null) {
             int index = java.util.Arrays.asList(sessionList).indexOf(selected);
-            VehicleSession session = activeSessions.get(index);
+            VehicleSession session = availableSessions.get(index);
 
             // Calculate fee
             double fee = session.calculateFee(5.0); // $5/hour rate
@@ -739,6 +781,80 @@ public class ParkingLotManagerGUI extends JFrame {
                     String.format("Vehicle %s exited.\nParked for %d hours.\nTotal fee: $%.2f",
                             session.getLicensePlate(), session.getParkedHours(), fee),
                     "Payment", JOptionPane.INFORMATION_MESSAGE);
+
+            refreshData();
+        }
+    }
+
+    /**
+     * Admin feature: Exit all vehicles from all parking lots
+     */
+    private void exitAllVehicles() {
+        if (!isAdmin) {
+            JOptionPane.showMessageDialog(this,
+                    "This feature is only available to administrators!",
+                    "Access Denied",
+                    JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        if (activeSessions.isEmpty()) {
+            JOptionPane.showMessageDialog(this,
+                    "No active parking sessions to exit!",
+                    "No Sessions",
+                    JOptionPane.INFORMATION_MESSAGE);
+            return;
+        }
+
+        int confirm = JOptionPane.showConfirmDialog(this,
+                "Are you sure you want to exit ALL " + activeSessions.size() + " active parking sessions?\n" +
+                        "This action cannot be undone!",
+                "Confirm Exit All",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.WARNING_MESSAGE);
+
+        if (confirm == JOptionPane.YES_OPTION) {
+            int exitedCount = 0;
+            double totalFees = 0.0;
+
+            // Create a copy to avoid concurrent modification
+            List<VehicleSession> sessionsToExit = new ArrayList<>(activeSessions);
+
+            for (VehicleSession session : sessionsToExit) {
+                // Calculate fee
+                double fee = session.calculateFee(5.0); // $5/hour rate
+                totalFees += fee;
+
+                // Find and free the slot
+                for (ParkingLot lot : parkingLots) {
+                    for (ParkingSlot slot : lot.getSlots()) {
+                        if (slot.getSlotId().equals(session.getSlotId())) {
+                            slot.setOccupied(false, null);
+                            break;
+                        }
+                    }
+                }
+
+                // Complete session in database
+                if (session.getId() > 0) {
+                    boolean completed = sessionDAO.completeSession(session.getId(), fee);
+                    if (completed) {
+                        exitedCount++;
+                        System.out.println("[OK] Completed parking session #" + session.getId() + " - Fee: $"
+                                + String.format("%.2f", fee));
+                    } else {
+                        System.err.println("[FAIL] Failed to complete session #" + session.getId());
+                    }
+                }
+            }
+
+            activeSessions.clear();
+
+            JOptionPane.showMessageDialog(this,
+                    String.format("Successfully exited %d vehicles!\nTotal fees collected: $%.2f",
+                            exitedCount, totalFees),
+                    "Exit All Complete",
+                    JOptionPane.INFORMATION_MESSAGE);
 
             refreshData();
         }
@@ -782,56 +898,6 @@ public class ParkingLotManagerGUI extends JFrame {
             JOptionPane.showMessageDialog(this,
                     "Thank you for your report!\n" + report,
                     "Report Submitted", JOptionPane.INFORMATION_MESSAGE);
-        }
-    }
-
-    /**
-     * Open the User Preferences dialog for the current user.
-     * Loads existing preferences from the DB (if any) and saves changes back.
-     */
-    private void openUserPreferences() {
-        // Safety check: make sure there is a logged-in user
-        if (currentUser == null) {
-            JOptionPane.showMessageDialog(this,
-                    "No logged-in user. Cannot edit preferences.",
-                    "Error",
-                    JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-
-        // DAO for loading/saving preferences
-        UserPreferenceDAO prefDAO = new UserPreferenceDAO();
-
-        // Load existing preference for this user (may return null)
-        UserPreference existingPref = prefDAO.getPreferenceByUserId(currentUser.getId());
-
-        // Open the dialog, passing the frame, lots list, and existing preference
-        UserPreferenceDialog dialog = new UserPreferenceDialog(
-                this,
-                parkingLots,
-                existingPref);
-
-        dialog.setLocationRelativeTo(this);
-        dialog.setVisible(true); // blocks until user closes dialog
-
-        // Get back whatever the dialog ended up with (null if user cancelled)
-        UserPreference updatedPref = dialog.getUserPreference();
-        if (updatedPref != null) {
-            // Make sure the preference is tied to this user
-            updatedPref.setUserID(currentUser.getId());
-
-            boolean ok = prefDAO.saveOrUpdatePreference(updatedPref);
-            if (ok) {
-                JOptionPane.showMessageDialog(this,
-                        "Preferences saved successfully.",
-                        "Success",
-                        JOptionPane.INFORMATION_MESSAGE);
-            } else {
-                JOptionPane.showMessageDialog(this,
-                        "Could not save preferences. Check logs/console for details.",
-                        "Error",
-                        JOptionPane.ERROR_MESSAGE);
-            }
         }
     }
 
@@ -1056,7 +1122,18 @@ public class ParkingLotManagerGUI extends JFrame {
             return;
         }
 
+        // Get today's completed sessions for revenue calculation
+        double totalDailyRevenue = sessionDAO.getTodayRevenue();
+        int completedToday = sessionDAO.getTodayCompletedCount();
+
         StringBuilder reportText = new StringBuilder();
+        reportText.append("=== DAILY REVENUE REPORT ===\n");
+        reportText.append(String.format("Date: %s\n", java.time.LocalDate.now()));
+        reportText.append(String.format("Total Revenue Today: $%.2f\n", totalDailyRevenue));
+        reportText.append(String.format("Completed Sessions Today: %d\n", completedToday));
+        reportText.append(
+                String.format("Average Fee: $%.2f\n\n", completedToday > 0 ? totalDailyRevenue / completedToday : 0.0));
+
         reportText.append("=== PARKING LOT REPORTS ===\n\n");
 
         for (ParkingLot lot : parkingLots) {
