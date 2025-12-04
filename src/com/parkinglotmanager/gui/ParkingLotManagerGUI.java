@@ -34,6 +34,7 @@ import javax.swing.table.DefaultTableModel;
 import com.parkinglotmanager.dao.VehicleDAO;
 import com.parkinglotmanager.dao.VehicleSessionDAO;
 import com.parkinglotmanager.dao.ParkingDAO;
+import com.parkinglotmanager.dao.UserPreferenceDAO;
 import com.parkinglotmanager.enums.LotType;
 import com.parkinglotmanager.enums.SlotType;
 import com.parkinglotmanager.enums.VehicleMake;
@@ -43,6 +44,7 @@ import com.parkinglotmanager.model.Client;
 import com.parkinglotmanager.model.ParkingLot;
 import com.parkinglotmanager.model.ParkingSlot;
 import com.parkinglotmanager.model.User;
+import com.parkinglotmanager.model.UserPreference;
 import com.parkinglotmanager.model.UserReport;
 import com.parkinglotmanager.model.VehicleSession;
 
@@ -56,6 +58,7 @@ public class ParkingLotManagerGUI extends JFrame {
     private VehicleSessionDAO sessionDAO;
     private VehicleDAO vehicleDAO;
     private ParkingDAO parkingDAO;
+    private UserPreferenceDAO userPrefDAO;
     private DefaultTableModel slotTableModel;
     private DefaultTableModel sessionTableModel;
     private JLabel totalSlotsLabel;
@@ -101,6 +104,7 @@ public class ParkingLotManagerGUI extends JFrame {
         sessionDAO = new VehicleSessionDAO();
         vehicleDAO = new VehicleDAO();
         parkingDAO = new ParkingDAO(sessionDAO, vehicleDAO);
+        userPrefDAO = new UserPreferenceDAO();
 
         // Load active sessions from database
         activeSessions = sessionDAO.getActiveSessions();
@@ -474,6 +478,12 @@ public class ParkingLotManagerGUI extends JFrame {
         refreshButton.setFont(new Font("Arial", Font.PLAIN, 12));
         refreshButton.addActionListener(e -> refreshData());
 
+        JButton preferencesButton = new JButton("Preferences");
+        preferencesButton.setOpaque(true);
+        preferencesButton.setBorderPainted(true);
+        preferencesButton.setFont(new Font("Arial", Font.PLAIN, 12));
+        preferencesButton.addActionListener(e -> openUserPreferences());
+
         // Admin-only buttons
         JButton manageSlotsButton = new JButton("Manage Slots");
         manageSlotsButton.addActionListener(e -> manageSlots());
@@ -530,8 +540,10 @@ public class ParkingLotManagerGUI extends JFrame {
             panel.add(exitAllButton);
             panel.add(manageSlotsButton);
             panel.add(viewReportsButton);
+
         }
         panel.add(refreshButton);
+        panel.add(preferencesButton);
         panel.add(logoutButton);
 
         return panel;
@@ -843,6 +855,31 @@ public class ParkingLotManagerGUI extends JFrame {
             refreshData();
         }
     }
+    /**
+     * open user preferences dialog
+     */
+    private void openUserPreferences() {
+
+        UserPreference existing = userPrefDAO.getPreferenceByUserId(currentUser.getId());
+        UserPreferenceDialog dialog = new UserPreferenceDialog(this, parkingLots, existing);
+        dialog.setLocationRelativeTo(this);
+        dialog.setVisible(true);
+
+        UserPreference updated = dialog.getUserPreference();
+        if (updated == null) {
+            return;
+        }
+
+        updated.setUserID(currentUser.getId());
+
+        boolean checkUpdate = userPrefDAO.saveOrUpdatePreference(updated);
+        if (checkUpdate) {
+            JOptionPane.showMessageDialog(this, "Preferences saved.", "Preference:", JOptionPane.INFORMATION_MESSAGE);
+        } else {
+            JOptionPane.showMessageDialog(this, "Failed to save preferences.", "Error:", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
 
     /**
      * Submit an availability report
