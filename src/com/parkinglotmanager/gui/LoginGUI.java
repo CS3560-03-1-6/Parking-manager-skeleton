@@ -285,7 +285,7 @@ public class LoginGUI extends JFrame {
         gbc.gridx = 0; gbc.gridy = 3; panel.add(cLabel, gbc);
         gbc.gridx = 1; panel.add(confTxt, gbc);
 
-        panel.setPreferredSize(new Dimension(500, 220));
+       //panel.setPreferredSize(new Dimension(500, 220));
 
         int result = JOptionPane.showConfirmDialog(
                 this, panel, "Create Account",
