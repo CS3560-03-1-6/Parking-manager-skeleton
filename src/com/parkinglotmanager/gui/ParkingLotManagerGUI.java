@@ -27,6 +27,7 @@ import javax.swing.ListSelectionModel;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
+import javax.swing.Timer;
 import javax.swing.UIManager;
 import javax.swing.table.DefaultTableModel;
 
@@ -63,6 +64,7 @@ public class ParkingLotManagerGUI extends JFrame {
     private JComboBox<String> lotSelector;
     private User currentUser;
     private boolean isAdmin;
+    private Timer autoRefreshTimer;
 
     public ParkingLotManagerGUI(User user) {
         this.currentUser = user;
@@ -70,6 +72,7 @@ public class ParkingLotManagerGUI extends JFrame {
         initializeData();
         setupUI();
         refreshData();
+        startAutoRefresh();
     }
 
     public ParkingLotManagerGUI() {
@@ -87,6 +90,7 @@ public class ParkingLotManagerGUI extends JFrame {
         initializeData();
         setupUI();
         refreshData();
+        startAutoRefresh();
     }
 
     /**
@@ -483,6 +487,15 @@ public class ParkingLotManagerGUI extends JFrame {
         refreshButton.setFont(new Font("Arial", Font.PLAIN, 12));
         refreshButton.addActionListener(e -> refreshData());
 
+        JButton visualizeButton = new JButton("Visual Simulation");
+        visualizeButton.setOpaque(true);
+        visualizeButton.setBorderPainted(true);
+        visualizeButton.setFont(new Font("Arial", Font.PLAIN, 12));
+        visualizeButton.setBackground(new Color(39, 174, 96));
+        visualizeButton.setForeground(Color.green);
+        visualizeButton.setFocusPainted(false);
+        visualizeButton.addActionListener(e -> openVisualization());
+
         JButton preferencesButton = new JButton("User Preferences");
         preferencesButton.setOpaque(true);
         preferencesButton.setBorderPainted(true);
@@ -520,6 +533,7 @@ public class ParkingLotManagerGUI extends JFrame {
         panel.add(parkButton);
         panel.add(exitButton);
         panel.add(reportButton);
+        panel.add(visualizeButton);
 
         // Only show admin buttons for admin users
         if (isAdmin) {
@@ -531,6 +545,23 @@ public class ParkingLotManagerGUI extends JFrame {
         panel.add(logoutButton);
 
         return panel;
+    }
+
+    /**
+     * Open the real-time visual simulation window
+     */
+    private void openVisualization() {
+        ParkingLot currentLot = getCurrentLot();
+        if (currentLot == null) {
+            JOptionPane.showMessageDialog(this,
+                    "Please select a parking lot first!",
+                    "No Lot Selected",
+                    JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        ParkingVisualization visualization = new ParkingVisualization(currentLot);
+        visualization.setVisible(true);
     }
 
     /**
@@ -823,6 +854,24 @@ public class ParkingLotManagerGUI extends JFrame {
         if (currentLot == null)
             return;
 
+        // Reload active sessions from database
+        activeSessions = sessionDAO.getActiveSessions();
+        System.out.println("[REFRESH] Reloaded " + activeSessions.size() + " active parking sessions from database");
+
+        // Update slot occupancy based on active sessions
+        for (ParkingSlot slot : currentLot.getSlots()) {
+            slot.setOccupied(false, null);
+        }
+
+        for (VehicleSession session : activeSessions) {
+            for (ParkingSlot slot : currentLot.getSlots()) {
+                if (slot.getSlotId().equals(session.getSlotId())) {
+                    slot.setOccupied(true, session.getVehicleType());
+                    break;
+                }
+            }
+        }
+
         // Update stats
         totalSlotsLabel.setText("Total: " + currentLot.getTotalSpaces());
         availableSlotsLabel.setText("Available: " + currentLot.getAvailableSpaces());
@@ -853,6 +902,32 @@ public class ParkingLotManagerGUI extends JFrame {
             };
             sessionTableModel.addRow(row);
         }
+    }
+
+    /**
+     * Start auto-refresh timer to update data every 3 seconds
+     */
+    private void startAutoRefresh() {
+        // Auto-refresh every 3 seconds
+        autoRefreshTimer = new Timer(3000, e -> refreshData());
+        autoRefreshTimer.start();
+        System.out.println("[AUTO-REFRESH] Started - updating every 3 seconds");
+    }
+
+    /**
+     * Stop auto-refresh timer
+     */
+    private void stopAutoRefresh() {
+        if (autoRefreshTimer != null && autoRefreshTimer.isRunning()) {
+            autoRefreshTimer.stop();
+            System.out.println("[AUTO-REFRESH] Stopped");
+        }
+    }
+
+    @Override
+    public void dispose() {
+        stopAutoRefresh();
+        super.dispose();
     }
 
     /**
