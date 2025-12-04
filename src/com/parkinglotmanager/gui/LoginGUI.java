@@ -1,183 +1,208 @@
 package com.parkinglotmanager.gui;
 
-import com.parkinglotmanager.dao.UserDAO;
-import com.parkinglotmanager.model.User;
-import com.parkinglotmanager.util.DatabaseConnection;
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+
 import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
+import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
+
+import com.parkinglotmanager.dao.UserDAO;
+import com.parkinglotmanager.model.User;
+import com.parkinglotmanager.util.DatabaseConnection;
 
 public class LoginGUI extends JFrame {
 
-    // --- Constants for Styling ---
-    private static final Color COLOR_PRIMARY = new Color(41, 128, 185); // Blue
-    private static final Color COLOR_SUCCESS = new Color(46, 204, 113); // Green
-    private static final Color COLOR_DANGER = new Color(231, 76, 60); // Red
-    private static final Font FONT_HEADER = new Font("Arial", Font.BOLD, 24);
-    private static final Font FONT_NORMAL = new Font("Arial", Font.BOLD, 12);
+    private static final Color HEADER_BLUE = new Color(167, 199, 231);   // soft header blue
+    private static final Color TEXT_COLOR = new Color(106, 123, 162);
+    private static final Color FIELD_BORDER = new Color(180, 180, 180);
 
-    // --- State ---
-    private static final String ADMIN_USERNAME = "admin";
-    private User loggedInUser;
+    private static final Font FONT_TITLE = new Font("Segoe UI", Font.BOLD, 28);
+    private static final Font FONT_LABEL = new Font("Segoe UI", Font.PLAIN, 15);
+    private static final Font FONT_BUTTON = new Font("Segoe UI", Font.BOLD, 15);
+    private static final Font FONT_FIELD = new Font("Segoe UI", Font.PLAIN, 14);
 
-    // --- UI Components ---
     private JTextField usernameField;
     private JPasswordField passwordField;
+    private User loggedInUser;
 
     public LoginGUI() {
         setupWindow();
         buildUI();
     }
 
-    // ==========================================
-    // 1. INITIALIZATION & SETUP
-    // ==========================================
-
     private void setupWindow() {
-        setTitle("Parking Lot Manager");
-        setSize(450, 400); // Slightly taller for breathing room
+        setTitle("Parking Manager");
+        setSize(600, 480);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setLayout(new BorderLayout(10, 10));
-        setLocationRelativeTo(null); // Center screen
+        setLocationRelativeTo(null);
+        setLayout(new BorderLayout());
+        getContentPane().setBackground(Color.WHITE);
 
         try {
             BufferedImage icon = ImageIO.read(new File("Resources/java-icon.png"));
             setIconImage(icon);
         } catch (IOException e) {
-            System.err.println("Icon load failed: " + e.getMessage());
+            System.err.println("Icon failed: " + e.getMessage());
         }
 
-        // Startup DB Check
         DatabaseConnection.testConnection();
     }
 
     private void buildUI() {
-        // Top
-        add(createHeaderPanel(), BorderLayout.NORTH);
 
-        // Center (Form)
-        add(createMainForm(), BorderLayout.CENTER);
+        //header
+        JPanel headerPanel = new JPanel(new BorderLayout());
+        headerPanel.setBackground(HEADER_BLUE);
+        headerPanel.setPreferredSize(new Dimension(getWidth(), 100));
 
-        // Bottom (Info)
-        add(createFooterPanel(), BorderLayout.SOUTH);
-    }
+        JLabel title = new JLabel("Parking Lot Manager System", SwingConstants.CENTER);
+        title.setFont(FONT_TITLE);
+        title.setForeground(TEXT_COLOR);
+        title.setBorder(BorderFactory.createEmptyBorder(25, 0, 10, 0));
 
-    // ==========================================
-    // 2. UI BUILDER METHODS
-    // ==========================================
+        headerPanel.add(title, BorderLayout.CENTER);
+        add(headerPanel, BorderLayout.NORTH);
 
-    private JPanel createHeaderPanel() {
-        JPanel panel = new JPanel();
-        panel.setBackground(COLOR_PRIMARY);
-        panel.setBorder(BorderFactory.createEmptyBorder(15, 10, 15, 10));
+        // login card
+        JPanel card = new JPanel(new GridBagLayout());
+        card.setBackground(Color.WHITE);
+        card.setBorder(BorderFactory.createEmptyBorder(40, 40, 10, 40));
 
-        JLabel titleLabel = new JLabel("Parking Manager System");
-        titleLabel.setFont(FONT_HEADER);
-        titleLabel.setForeground(Color.WHITE);
-        panel.add(titleLabel);
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(12, 12, 12, 12);
+        gbc.anchor = GridBagConstraints.WEST;
 
-        return panel;
-    }
-
-    private JPanel createMainForm() {
-        JPanel panel = new JPanel(new GridBagLayout());
-        panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
-
-        // Initialize Fields
-        usernameField = new JTextField(20);
+        usernameField = createField();
         passwordField = new JPasswordField(20);
-        // Allow "Enter" key to trigger login
+        styleTextField(passwordField);
         passwordField.addActionListener(e -> handleLogin());
 
-        // --- Row 0: Username ---
-        addComponent(panel, new JLabel("Username:"), 0, 0, 1);
-        addComponent(panel, usernameField, 1, 0, 2);
+        addFormRow(card, gbc, 0, "Username:", usernameField);
+        addFormRow(card, gbc, 1, "Password:", passwordField);
 
-        // --- Row 1: Password ---
-        addComponent(panel, new JLabel("Password:"), 0, 1, 1);
-        addComponent(panel, passwordField, 1, 1, 2);
+        // Buttons row
+        JPanel buttonRow = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 20));
+        buttonRow.setOpaque(false);
 
-        // --- Row 2: Buttons ---
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
-        buttonPanel.add(createStyledButton("Login", COLOR_SUCCESS, e -> handleLogin()));
-        buttonPanel.add(createStyledButton("Sign Up", COLOR_PRIMARY, e -> handleSignup()));
-        buttonPanel.add(createStyledButton("Exit", COLOR_DANGER, e -> System.exit(0)));
+        JButton loginBtn = createButton("Login");
+        loginBtn.addActionListener(e -> handleLogin());
 
-        // Add button panel spanning 3 columns
-        GridBagConstraints gbc = new GridBagConstraints();
+        JButton signupBtn = createButton("Sign Up");
+        signupBtn.addActionListener(e -> handleSignup());
+
+        JButton exitBtn = createButton("Exit");
+        exitBtn.addActionListener(e -> System.exit(0));
+
+        buttonRow.add(loginBtn);
+        buttonRow.add(signupBtn);
+        buttonRow.add(exitBtn);
+
         gbc.gridx = 0;
         gbc.gridy = 2;
-        gbc.gridwidth = 3;
-        gbc.insets = new Insets(20, 0, 0, 0);
+        gbc.gridwidth = 2;
+        gbc.anchor = GridBagConstraints.CENTER;
+        card.add(buttonRow, gbc);
+
+        add(card, BorderLayout.CENTER);
+
+        // footer
+        JLabel hint = new JLabel(
+            "Default: admin/admin123 or client/client123",
+            SwingConstants.CENTER
+        );
+        hint.setFont(new Font("Segoe UI", Font.ITALIC, 11));
+        hint.setForeground(TEXT_COLOR);
+        hint.setBorder(BorderFactory.createEmptyBorder(5, 0, 15, 0));
+
+        add(hint, BorderLayout.SOUTH);
+    }
+    
+    //helpers
+    private void addFormRow(JPanel panel, GridBagConstraints gbc, int row,
+                            String labelText, JComponent field) {
+
+        JLabel label = new JLabel(labelText);
+        label.setFont(FONT_LABEL);
+        label.setForeground(TEXT_COLOR);
+
+        gbc.gridx = 0;
+        gbc.gridy = row;
+        panel.add(label, gbc);
+
+        gbc.gridx = 1;
+        gbc.gridy = row;
         gbc.fill = GridBagConstraints.HORIZONTAL;
-        panel.add(buttonPanel, gbc);
-
-        return panel;
+        panel.add(field, gbc);
     }
 
-    private JPanel createFooterPanel() {
-        JPanel panel = new JPanel();
-        panel.setBorder(BorderFactory.createEmptyBorder(5, 10, 10, 10));
-
-        JLabel infoLabel = new JLabel("<html><center>Default: admin/admin123 or client/client123</center></html>");
-        infoLabel.setForeground(Color.GRAY);
-        panel.add(infoLabel);
-        return panel;
+    private JTextField createField() {
+        JTextField field = new JTextField(20);
+        styleTextField(field);
+        return field;
     }
 
-    /**
-     * Helper to reduce GridBagLayout clutter
-     */
-    private void addComponent(JPanel panel, Component comp, int x, int y, int width) {
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.gridx = x;
-        gbc.gridy = y;
-        gbc.gridwidth = width;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.insets = new Insets(5, 5, 5, 5);
-        panel.add(comp, gbc);
+    private void styleTextField(JComponent comp) {
+        comp.setFont(FONT_FIELD);
+        comp.setForeground(TEXT_COLOR);
+        comp.setBackground(Color.WHITE);
+
+        comp.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(FIELD_BORDER, 1),
+                BorderFactory.createEmptyBorder(6, 8, 6, 8)
+        ));
     }
 
-    /**
-     * Helper to create consistent flat buttons
-     */
-    private JButton createStyledButton(String text, Color bg, java.awt.event.ActionListener action) {
+    private JButton createButton(String text) {
         JButton btn = new JButton(text);
-        btn.setBackground(bg);
-        btn.setForeground(Color.WHITE);
+        btn.setFont(FONT_BUTTON);
+        btn.setForeground(TEXT_COLOR);
+        btn.setBackground(Color.WHITE);
         btn.setFocusPainted(false);
-        btn.setBorderPainted(false);
-        btn.setFont(FONT_NORMAL);
-        btn.addActionListener(action);
+
+        btn.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(HEADER_BLUE, 2),
+                BorderFactory.createEmptyBorder(10, 25, 10, 25)
+        ));
+
+        // hover effect
+        btn.addMouseListener(new MouseAdapter() {
+            public void mouseEntered(MouseEvent evt) {
+                btn.setBackground(new Color(225, 235, 245));
+            }
+
+            public void mouseExited(MouseEvent evt) {
+                btn.setBackground(Color.WHITE);
+            }
+        });
+
         return btn;
     }
-
-    // ==========================================
-    // 3. LOGIC & HANDLERS
-    // ==========================================
 
     private void handleLogin() {
         String username = usernameField.getText().trim();
         String password = new String(passwordField.getPassword());
+
         UserDAO userDAO = new UserDAO();
         User user = userDAO.getUserByUsername(username);
 
@@ -202,11 +227,10 @@ public class LoginGUI extends JFrame {
             e.printStackTrace();
         }
 
-        // Success
         loggedInUser = user;
-        // JOptionPane.showMessageDialog(this, "Welcome back, " + user.getFirstName() +
-        // "!");
-        JOptionPane.showMessageDialog(this, "Welcome back, " + user.getUsername() + "!");
+
+        JOptionPane.showMessageDialog(this,
+                "Welcome back, " + user.getUsername() + "!");
 
         SwingUtilities.invokeLater(() -> {
             new ParkingLotManagerGUI(loggedInUser).setVisible(true);
@@ -215,79 +239,103 @@ public class LoginGUI extends JFrame {
     }
 
     private void handleSignup() {
-        // Create form fields for the popup
-        JTextField userTxt = new JTextField();
-        // JTextField firstTxt = new JTextField();
-        // JTextField lastTxt = new JTextField();
-        JTextField emailTxt = new JTextField();
-        JPasswordField passTxt = new JPasswordField();
-        JPasswordField confTxt = new JPasswordField();
 
-        Object[] message = {
-                "Username:", userTxt,
-                // "First Name:", firstTxt,
-                // "Last Name:", lastTxt,
-                "Email:", emailTxt,
-                "Password:", passTxt,
-                "Confirm Password:", confTxt
-        };
+        JPanel panel = new JPanel(new GridBagLayout());
+        panel.setBackground(Color.WHITE);
+        panel.setBorder(BorderFactory.createEmptyBorder(15, 25, 15, 25));
 
-        int option = JOptionPane.showConfirmDialog(this, message, "Create Account", JOptionPane.OK_CANCEL_OPTION);
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(9, 9, 9, 9);
+        gbc.anchor = GridBagConstraints.WEST;
 
-        if (option == JOptionPane.OK_OPTION) {
+        JTextField userTxt = new JTextField(14);
+        JTextField emailTxt = new JTextField(14);
+        JPasswordField passTxt = new JPasswordField(14);
+        JPasswordField confTxt = new JPasswordField(14);
+
+        styleTextField(userTxt);
+        styleTextField(emailTxt);
+        styleTextField(passTxt);
+        styleTextField(confTxt);
+
+        JLabel uLabel = new JLabel("Username:");
+        JLabel eLabel = new JLabel("Email:");
+        JLabel pLabel = new JLabel("Password:");
+        JLabel cLabel = new JLabel("Confirm Password:");
+
+        uLabel.setFont(FONT_LABEL);
+        eLabel.setFont(FONT_LABEL);
+        pLabel.setFont(FONT_LABEL);
+        cLabel.setFont(FONT_LABEL);
+
+        uLabel.setForeground(TEXT_COLOR);
+        eLabel.setForeground(TEXT_COLOR);
+        pLabel.setForeground(TEXT_COLOR);
+        cLabel.setForeground(TEXT_COLOR);
+
+        gbc.gridx = 0; gbc.gridy = 0; panel.add(uLabel, gbc);
+        gbc.gridx = 1; panel.add(userTxt, gbc);
+
+        gbc.gridx = 0; gbc.gridy = 1; panel.add(eLabel, gbc);
+        gbc.gridx = 1; panel.add(emailTxt, gbc);
+
+        gbc.gridx = 0; gbc.gridy = 2; panel.add(pLabel, gbc);
+        gbc.gridx = 1; panel.add(passTxt, gbc);
+
+        gbc.gridx = 0; gbc.gridy = 3; panel.add(cLabel, gbc);
+        gbc.gridx = 1; panel.add(confTxt, gbc);
+
+        panel.setPreferredSize(new Dimension(500, 220));
+
+        int result = JOptionPane.showConfirmDialog(
+                this, panel, "Create Account",
+                JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE
+        );
+
+        if (result == JOptionPane.OK_OPTION) {
+
             String username = userTxt.getText().trim();
             String email = emailTxt.getText().trim();
-            String password = new String(passTxt.getPassword());
-            String confirmPassword = new String(confTxt.getPassword());
+            String pass = new String(passTxt.getPassword());
+            String conf = new String(confTxt.getPassword());
 
-            UserDAO userDAO = new UserDAO();
-
-            // Basic Validation
-            if (username.isEmpty() || email.isEmpty() || password.isEmpty()) {
-                showError("All fields are required.");
+            if (username.isEmpty() || email.isEmpty() || pass.isEmpty() || conf.isEmpty()) {
+                showError("Please fill in all fields.");
                 return;
             }
 
-            if (!password.equals(confirmPassword)) {
+            if (!pass.equals(conf)) {
                 showError("Passwords do not match.");
                 return;
             }
 
-            // Check if username already exists in DB
-            if (userDAO.usernameExists(username)) {
-                showError("Username already taken. Please choose another.");
-                return;
-            }
+            UserDAO dao = new UserDAO();
 
-            // Check if email already exists in DB
-            if (userDAO.emailExists(email)) {
-                showError("Email already registered. Please login instead.");
+            if (dao.getUserByUsername(username) != null) {
+                showError("Username already exists.");
                 return;
             }
 
             try {
-                // Use User class to hash password using PBKDF2
-                User temp = new User(username, "", "", email, password);
-                String hashedPassword = temp.getPasswordHash();
+                User temp = new User(username, "", "", email, pass);
 
-                // Register user in database (CREATE operation)
-                int newUserId = userDAO.registerUser(username, email, hashedPassword, false);
+                int newId = dao.registerUser(
+                        temp.getUsername(),
+                        temp.getEmail(),
+                        temp.getPasswordHash(),
+                        false
+                );
 
-                if (newUserId > 0) {
+                if (newId > 0) {
                     JOptionPane.showMessageDialog(this,
-                            "Account created successfully!\nYou may now login with your credentials.",
-                            "Success",
-                            JOptionPane.INFORMATION_MESSAGE);
-                    // Pre-fill username for convenience
-                    usernameField.setText(username);
-                    passwordField.setText("");
+                            "Account created! You may now log in.");
                 } else {
-                    showError("Database error: Could not create account. Please try again.");
+                    showError("Could not create the account.");
                 }
 
             } catch (Exception ex) {
                 ex.printStackTrace();
-                showError("Error creating account: " + ex.getMessage());
+                showError("Unexpected error.");
             }
         }
     }
@@ -297,10 +345,6 @@ public class LoginGUI extends JFrame {
     }
 
     public static void main(String[] args) {
-        try {
-            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-        } catch (Exception ignored) {
-        }
         SwingUtilities.invokeLater(() -> new LoginGUI().setVisible(true));
     }
 }
