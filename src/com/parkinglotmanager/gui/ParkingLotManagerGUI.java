@@ -611,10 +611,10 @@ public class ParkingLotManagerGUI extends JFrame {
             panel.add(visualizeButton);
             panel.add(exitAllButton);
             panel.add(manageSlotsButton);
-            //panel.add(viewReportsButton);
+            panel.add(viewReportsButton);
 
         }
-        panel.add(viewReportsButton);
+        //panel.add(viewReportsButton);
         panel.add(refreshButton);
         panel.add(preferencesButton);
         panel.add(logoutButton);
