@@ -611,10 +611,10 @@ public class ParkingLotManagerGUI extends JFrame {
             panel.add(visualizeButton);
             panel.add(exitAllButton);
             panel.add(manageSlotsButton);
-            panel.add(viewReportsButton);
+            //panel.add(viewReportsButton);
 
         }
-        //panel.add(viewReportsButton);
+        panel.add(viewReportsButton);
         panel.add(refreshButton);
         panel.add(preferencesButton);
         panel.add(logoutButton);
@@ -1132,7 +1132,7 @@ public class ParkingLotManagerGUI extends JFrame {
             // Add slot
             JPanel addPanel = new JPanel(new GridLayout(2, 2, 5, 5));
             JSpinner slotNumberSpinner = new JSpinner(new SpinnerNumberModel(
-                    currentLot.getTotalSpaces() + 1, 1, 1000, 1));
+                    currentLot.getTotalSpaces() + 1, 1, 10000, 1));
             JComboBox<SlotType> slotTypeCombo = new JComboBox<>(SlotType.values());
 
             addPanel.add(new JLabel("Slot Number:"));
