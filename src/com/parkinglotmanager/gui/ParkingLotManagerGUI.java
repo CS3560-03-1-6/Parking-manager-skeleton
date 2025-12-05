@@ -577,6 +577,8 @@ public class ParkingLotManagerGUI extends JFrame {
         JButton reportButton = newUIButton("Submit Availability Report", 0);
         reportButton.addActionListener(e -> submitReport());
 
+        //insert summary here
+
         JButton refreshButton = newUIButton("Refresh", 0);
         refreshButton.addActionListener(e -> refreshData());
 
@@ -609,9 +611,10 @@ public class ParkingLotManagerGUI extends JFrame {
             panel.add(visualizeButton);
             panel.add(exitAllButton);
             panel.add(manageSlotsButton);
-            panel.add(viewReportsButton);
+            //panel.add(viewReportsButton);
 
         }
+        panel.add(viewReportsButton);
         panel.add(refreshButton);
         panel.add(preferencesButton);
         panel.add(logoutButton);
@@ -849,11 +852,16 @@ public class ParkingLotManagerGUI extends JFrame {
             }
 
             activeSessions.remove(index);
-
+/*
             JOptionPane.showMessageDialog(this,
                     String.format("Vehicle %s exited.\nParked for %d hours.\nTotal fee: $%.2f",
                             session.getLicensePlate(), session.getParkedHours(), fee),
                     "Payment", JOptionPane.INFORMATION_MESSAGE);
+ */
+            JOptionPane.showMessageDialog(this,
+                    String.format("Vehicle %s exited.\nParked for %d hours.\n",
+                            session.getLicensePlate(), session.getParkedHours()),
+                    "Exit Summary", JOptionPane.INFORMATION_MESSAGE);
 
             refreshData();
         }
@@ -1209,9 +1217,11 @@ public class ParkingLotManagerGUI extends JFrame {
     }
 
     /**
-     * Admin feature: View all reports
+     * ~~Admin feature: View all reports~~ Allow users to view all reports
      */
+    
     private void viewAllReports() {
+        /*
         if (!isAdmin) {
             JOptionPane.showMessageDialog(this,
                     "This feature is only available to administrators!",
@@ -1219,19 +1229,21 @@ public class ParkingLotManagerGUI extends JFrame {
                     JOptionPane.ERROR_MESSAGE);
             return;
         }
+         */
 
         // Get today's completed sessions for revenue calculation
         double totalDailyRevenue = sessionDAO.getTodayRevenue();
         int completedToday = sessionDAO.getTodayCompletedCount();
 
         StringBuilder reportText = new StringBuilder();
+        /*
         reportText.append("=== DAILY REVENUE REPORT ===\n");
         reportText.append(String.format("Date: %s\n", java.time.LocalDate.now()));
         reportText.append(String.format("Total Revenue Today: $%.2f\n", totalDailyRevenue));
         reportText.append(String.format("Completed Sessions Today: %d\n", completedToday));
         reportText.append(
                 String.format("Average Fee: $%.2f\n\n", completedToday > 0 ? totalDailyRevenue / completedToday : 0.0));
-
+ */
         reportText.append("=== PARKING LOT REPORTS ===\n\n");
 
         for (ParkingLot lot : parkingLots) {
@@ -1254,8 +1266,9 @@ public class ParkingLotManagerGUI extends JFrame {
                     session.getVehicleType()));
             reportText.append(String.format("  Duration: %d hours\n",
                     session.getParkedHours()));
-            reportText.append(String.format("  Estimated Fee: $%.2f\n\n",
-                    session.calculateFee(5.0)));
+
+            // reportText.append(String.format("  Estimated Fee: $%.2f\n\n",
+            //         session.calculateFee(5.0)));
         }
 
         JTextArea textArea = new JTextArea(reportText.toString());
