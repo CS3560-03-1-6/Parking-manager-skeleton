@@ -276,20 +276,20 @@ public class ParkingLotManagerGUI extends JFrame {
      * Creates the header panel with lot selector and stats
      */
     private JPanel createHeaderPanel() {
-        JPanel headerPanel = new JPanel(new BorderLayout(10, 10));
+        JPanel headerPanel = new JPanel(new BorderLayout());
         headerPanel.setBackground(HEADER_BLUE);
-        headerPanel.setPreferredSize(new Dimension(getWidth(), 100));
+        headerPanel.setPreferredSize(new Dimension(getWidth(), 130));
 
         // Title
         JLabel title = new JLabel("Parking Lot Manager System", SwingConstants.CENTER);
         title.setFont(FONT_TITLE);
         title.setForeground(TEXT_COLOR);
-        title.setBorder(BorderFactory.createEmptyBorder(25, 0, 10, 0));
+        title.setBorder(BorderFactory.createEmptyBorder(10, 0, 5, 0));
 
         headerPanel.add(title, BorderLayout.NORTH);
 
         // Lot selector and stats
-        JPanel controlPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        JPanel controlPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
         controlPanel.setBackground(HEADER_BLUE);
         JLabel selectLotLabel = new JLabel("Select Lot:");
         selectLotLabel.setFont(FONT_LABEL);
@@ -298,6 +298,9 @@ public class ParkingLotManagerGUI extends JFrame {
 
         lotSelector = new JComboBox<>();
         lotSelector.setFont(FONT_FIELD);
+        lotSelector.setBackground(Color.WHITE);
+        lotSelector.setForeground(TEXT_COLOR);
+        lotSelector.setPreferredSize(new Dimension(300, 30));
         for (ParkingLot lot : parkingLots) {
             lotSelector.addItem(lot.getName() + " (" + lot.getLotId() + ")");
         }
