@@ -29,14 +29,13 @@ import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 import javax.swing.UIManager;
-import javax.swing.border.Border;
 import javax.swing.border.TitledBorder;
 import javax.swing.table.DefaultTableModel;
 
-import com.parkinglotmanager.dao.VehicleDAO;
-import com.parkinglotmanager.dao.VehicleSessionDAO;
 import com.parkinglotmanager.dao.ParkingDAO;
 import com.parkinglotmanager.dao.UserPreferenceDAO;
+import com.parkinglotmanager.dao.VehicleDAO;
+import com.parkinglotmanager.dao.VehicleSessionDAO;
 import com.parkinglotmanager.enums.LotType;
 import com.parkinglotmanager.enums.SlotType;
 import com.parkinglotmanager.enums.VehicleMake;
@@ -963,12 +962,13 @@ public class ParkingLotManagerGUI extends JFrame {
      * Submit an availability report
      */
     private void submitReport() {
+        refreshData();
         ParkingLot currentLot = getCurrentLot();
         if (currentLot == null)
             return;
-
         JPanel inputPanel = new JPanel(new GridLayout(3, 2, 5, 5));
-        JSpinner availableSpinner = new JSpinner(new SpinnerNumberModel(0, 0, 100, 1));
+
+        JSpinner availableSpinner = new JSpinner(new SpinnerNumberModel(currentLot.getAvailableSpaces(), 0, currentLot.getTotalSpaces(), 1));
         JSlider confidenceSlider = new JSlider(0, 100, 80);
         confidenceSlider.setMajorTickSpacing(20);
         confidenceSlider.setPaintTicks(true);
@@ -1042,7 +1042,6 @@ public class ParkingLotManagerGUI extends JFrame {
         availableSlotsLabel.setText("Available: " + currentLot.getAvailableSpaces());
         occupiedSlotsLabel.setText("Occupied: " +
                 (currentLot.getTotalSpaces() - currentLot.getAvailableSpaces()));
-
         // Update slots table
         slotTableModel.setRowCount(0);
         for (ParkingSlot slot : currentLot.getSlots()) {
